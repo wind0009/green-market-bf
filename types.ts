@@ -1,0 +1,49 @@
+
+export type Category = 'Intérieur' | 'Jardin' | 'Ombre' | 'Soleil' | 'Arbre' | 'Potager';
+
+export interface Plant {
+  id: string;
+  name: string;
+  localName?: string;
+  scientificName: string;
+  price: number;
+  category: Category;
+  image: string;
+  description: string;
+  care: {
+    water: string;
+    sun: string;
+    difficulty: 'Facile' | 'Moyen' | 'Expert';
+  };
+  stock: number;
+}
+
+export interface CartItem extends Plant {
+  quantity: number;
+}
+
+export type OrderStatus = 'En attente' | 'Validée' | 'Livrée' | 'Annulée';
+
+export interface Order {
+  id: string;
+  items: CartItem[];
+  total: number;
+  customer: {
+    name: string;
+    phone: string;
+    city: 'Ouagadougou' | 'Bobo-Dioulasso';
+    district: string;
+    landmark: string;
+    method: 'Livraison' | 'Retrait';
+    pickupTime?: string;
+  };
+  paymentMethod: 'Mobile Money' | 'Paiement à la livraison';
+  status: OrderStatus;
+  date: string;
+}
+
+export interface District {
+  name: string;
+  city: 'Ouagadougou' | 'Bobo-Dioulasso';
+  deliveryFee: number;
+}
