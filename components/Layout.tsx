@@ -17,7 +17,7 @@ const Layout: React.FC<LayoutProps> = ({ children, cartCount, isLoggedIn }) => {
     { path: '/wishlist', icon: 'fa-heart', label: 'Favoris' },
     { path: '/cart', icon: 'fa-shopping-cart', label: 'Panier', count: cartCount },
     { path: '/order-history', icon: 'fa-receipt', label: 'Historique' },
-    { path: '/profile', icon: 'fa-user', label: 'Profil' },
+    ...(isLoggedIn ? [{ path: '/profile', icon: 'fa-user', label: 'Profil' }] : [{ path: '/login', icon: 'fa-sign-in-alt', label: 'Connexion' }])
   ];
 
   return (
