@@ -6,6 +6,7 @@ import ProductDetails from './views/ProductDetails';
 import Cart from './views/Cart';
 import Admin from './views/Admin';
 import Profile from './views/Profile';
+import OrderHistory from './views/OrderHistory';
 import { Plant, CartItem, Order, User } from './types';
 import { PLANTS as INITIAL_PLANTS } from './constants';
 import { cartService, orderService } from './services/firebaseService';
@@ -266,6 +267,9 @@ const AppContent: React.FC = () => {
         } />
         <Route path="/profile" element={
           <Profile user={user} onLogin={handleLogin} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
+        } />
+        <Route path="/order-history" element={
+          <OrderHistory orders={orders} />
         } />
         <Route path="/admin" element={
           user.isAdmin ? (

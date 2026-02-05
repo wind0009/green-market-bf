@@ -16,6 +16,7 @@ const Layout: React.FC<LayoutProps> = ({ children, cartCount, isLoggedIn }) => {
     { path: '/', icon: 'fa-house', label: 'Boutique' },
     { path: '/wishlist', icon: 'fa-heart', label: 'Favoris' },
     { path: '/cart', icon: 'fa-shopping-cart', label: 'Panier', count: cartCount },
+    { path: '/order-history', icon: 'fa-receipt', label: 'Historique' },
     { path: '/profile', icon: 'fa-user', label: 'Profil' },
   ];
 
