@@ -24,16 +24,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     district: ''
   });
 
-  const validatePhone = (phone: string) => {
+  const validatePhone = (phone: string): boolean => {
     if (!phone || phone.length < 8) {
-      setErrors({ phone: 'Veuillez entrer un numéro de téléphone valide' });
+      setErrors(prev => ({ ...prev, phone: 'Veuillez entrer un numéro de téléphone valide' }));
       return false;
     }
-    setErrors({});
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.phone;
+      return newErrors;
+    });
     return true;
   };
 
-  const validateRegister = () => {
+  const validateRegister = (): boolean => {
     const newErrors: {[key: string]: string} = {};
     
     if (!profileData.name.trim()) {
@@ -41,6 +45,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
     
     if (!validatePhone(phone)) {
+      setErrors(prev => ({ ...prev, ...newErrors }));
       return false;
     }
     
@@ -61,7 +66,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         // Pour la connexion, vérifier si l'utilisateur existe
         const existingUser = await userService.getUserByPhone(phone);
         if (!existingUser) {
-          setErrors({ phone: 'Ce numéro n\'est pas enregistré. Veuillez créer un compte.' });
+          setErrors(prev => ({ ...prev, phone: 'Ce numéro n\'est pas enregistré. Veuillez créer un compte.' }));
           setIsCheckingUser(false);
           return;
         }
@@ -70,7 +75,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         // Pour l'inscription, vérifier si l'utilisateur existe déjà
         const existingUser = await userService.getUserByPhone(phone);
         if (existingUser) {
-          setErrors({ phone: 'Ce numéro est déjà enregistré. Veuillez vous connecter.' });
+          setErrors(prev => ({ ...prev, phone: 'Ce numéro est déjà enregistré. Veuillez vous connecter.' }));
           setIsCheckingUser(false);
           return;
         }
@@ -81,7 +86,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       console.log("OTP Sent to " + phone);
     } catch (error) {
       console.error('Erreur lors de la vérification:', error);
-      setErrors({ general: 'Une erreur est survenue. Veuillez réessayer.' });
+      setErrors(prev => ({ ...prev, general: 'Une erreur est survenue. Veuillez réessayer.' }));
     } finally {
       setIsCheckingUser(false);
     }
@@ -89,7 +94,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const handleVerifyOtp = async () => {
     if (otp.length < 4) {
-      setErrors({ otp: 'Veuillez entrer le code à 4 chiffres' });
+      setErrors(prev => ({ ...prev, otp: 'Veuillez entrer le code à 4 chiffres' }));
       return;
     }
     
@@ -119,14 +124,16 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           const existingUser = await userService.getUserByPhone(phone);
           if (existingUser) {
             onLogin(existingUser);
+          } else {
+            setErrors({ general: 'Utilisateur non trouvé. Veuillez créer un compte.' });
           }
         }
       } else {
-        setErrors({ otp: 'Code incorrect (Essayez 1234)' });
+        setErrors(prev => ({ ...prev, otp: 'Code incorrect (Essayez 1234)' }));
       }
     } catch (error) {
       console.error('Erreur lors de la vérification:', error);
-      setErrors({ general: 'Une erreur est survenue. Veuillez réessayer.' });
+      setErrors(prev => ({ ...prev, general: 'Une erreur est survenue. Veuillez réessayer.' }));
     } finally {
       setIsProcessing(false);
     }

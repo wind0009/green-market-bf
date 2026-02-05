@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -6,12 +7,8 @@ import ProductDetails from './views/ProductDetails';
 import Cart from './views/Cart';
 import Admin from './views/Admin';
 import Profile from './views/Profile';
-import OrderHistory from './views/OrderHistory';
-import Login from './views/Login';
 import { Plant, CartItem, Order, User } from './types';
 import { PLANTS as INITIAL_PLANTS } from './constants';
-import { cartService, orderService } from './services/firebaseService';
-import { userService } from './services/userService';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
@@ -22,48 +19,38 @@ const AppContent: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [userRegistry, setUserRegistry] = useState<Record<string, Partial<User>>>({});
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
 
-  // Firebase Persistence
+  // Persistence
   useEffect(() => {
-    const loadData = async () => {
-      if (user) {
-        try {
-          // Charger le panier depuis Firebase
-          const userCart = await cartService.getCart(user.id);
-          setCart(userCart);
-          
-          // Charger toutes les commandes
-          const allOrders = await orderService.getOrders();
-          setOrders(allOrders);
-        } catch (error) {
-          console.error('Erreur lors du chargement des données:', error);
-        }
-      }
-    };
-    
-    loadData();
-  }, [user]);
+    const savedCart = localStorage.getItem('gm_cart');
+    const savedOrders = localStorage.getItem('gm_orders');
+    const savedPlants = localStorage.getItem('gm_plants');
+    const savedWishlist = localStorage.getItem('gm_wishlist');
+    const savedUser = localStorage.getItem('gm_user');
+    const savedRegistry = localStorage.getItem('gm_user_registry');
 
-  // Sauvegarder le panier dans Firebase
+    if (savedCart) setCart(JSON.parse(savedCart));
+    if (savedOrders) setOrders(JSON.parse(savedOrders));
+    if (savedPlants) setPlants(JSON.parse(savedPlants));
+    if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
+    if (savedUser) setUser(JSON.parse(savedUser));
+    if (savedRegistry) setUserRegistry(JSON.parse(savedRegistry));
+  }, []);
+
   useEffect(() => {
-    const saveCart = async () => {
-      if (user && cart.length > 0) {
-        try {
-          // Vider d'abord le panier existant
-          await cartService.clearCart(user.id);
-          
-          // Ajouter tous les articles du panier actuel
-          const savePromises = cart.map(item => cartService.addToCart(user.id, item));
-          await Promise.all(savePromises);
-        } catch (error) {
-          console.error('Erreur lors de la sauvegarde du panier:', error);
-        }
-      }
-    };
-    
-    saveCart();
-  }, [cart, user]);
+    localStorage.setItem('gm_cart', JSON.stringify(cart));
+    localStorage.setItem('gm_orders', JSON.stringify(orders));
+    localStorage.setItem('gm_plants', JSON.stringify(plants));
+    localStorage.setItem('gm_wishlist', JSON.stringify(wishlist));
+    localStorage.setItem('gm_user_registry', JSON.stringify(userRegistry));
+    if (user) {
+      localStorage.setItem('gm_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('gm_user');
+    }
+  }, [cart, orders, plants, wishlist, user, userRegistry]);
 
   const addToCart = (plant: Plant) => {
     setCart(prev => {
@@ -89,94 +76,99 @@ const AppContent: React.FC = () => {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  const handlePlaceOrder = async (order: Order) => {
+  const handlePlaceOrder = (order: Order) => {
     const finalOrder = { ...order, userId: user?.id };
-    try {
-      await orderService.addOrder(finalOrder);
-      
-      // Recharger les commandes depuis Firebase
-      const allOrders = await orderService.getOrders();
-      setOrders(allOrders);
-      
-      // Vider le panier dans Firebase et localement
-      if (user) {
-        await cartService.clearCart(user.id);
-      }
-      setCart([]);
-    } catch (error) {
-      console.error('Erreur lors de la commande:', error);
+    setOrders([finalOrder, ...orders]);
+    
+    // Mettre à jour le registre avec les infos de la commande
+    if (order.customer.phone && order.customer.name) {
+      setUserRegistry(prev => ({
+        ...prev,
+        [order.customer.phone]: { 
+          name: order.customer.name, 
+          phone: order.customer.phone 
+        }
+      }));
     }
+    
+    setCart([]);
   };
 
-  const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
-    try {
-      await orderService.updateOrderStatus(orderId, status);
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut:', error);
-    }
+  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
   };
 
   const toggleWishlist = (id: string) => {
     setWishlist(prev => prev.includes(id) ? prev.filter(wid => wid !== id) : [...prev, id]);
   };
 
-  const handleLogin = async (phone: string, isAdmin: boolean = false) => {
-    try {
-      // Check if user already exists in Firebase
-      const savedUser = await userService.getUserByPhone(phone);
-      
-      const loggedUser: User = savedUser && savedUser.phone === phone ? savedUser : {
-        id: Math.random().toString(36).substr(2, 9),
-        phone,
-        isAdmin,
-        isProfileComplete: isAdmin, // Admins don't need profile completion step
-        addresses: []
-      };
-      
-      // Ensure admin flag is correctly set even for existing users
-      if (isAdmin) loggedUser.isAdmin = true;
+  const handleLogin = (phone: string, isAdmin: boolean = false, profileData?: Partial<User>) => {
+    const isSpecialAdmin = phone === 'ADMIN_MASTER';
+    const phoneToUse = isSpecialAdmin ? 'Admin Principal' : phone;
 
-      // Save user to Firebase
-      await userService.saveUser(loggedUser);
-      setUser(loggedUser);
-      
-      if (isAdmin) {
-        navigate('/admin');
-      } else if (!loggedUser.isProfileComplete) {
-        navigate('/profile');
-      } else {
+    // 1. Chercher dans le registre (Données persistantes)
+    const registeredInfo = userRegistry[phoneToUse];
+    
+    // 2. Chercher dans l'historique des commandes (Fallback)
+    const historicalOrder = orders.find(o => o.customer.phone === phoneToUse);
+    const recoveredName = historicalOrder?.customer.name;
+
+    const loggedUser: User = {
+      id: registeredInfo?.id || user?.id || Math.random().toString(36).substr(2, 9),
+      phone: phoneToUse,
+      name: profileData?.name || registeredInfo?.name || recoveredName || '',
+      email: profileData?.email || registeredInfo?.email || '',
+      isAdmin: isAdmin || isSpecialAdmin,
+      isProfileComplete: !!(profileData?.name || registeredInfo?.name || recoveredName || isAdmin || isSpecialAdmin),
+      addresses: registeredInfo?.addresses || []
+    };
+    
+    // Sauvegarder dans le registre pour la prochaine fois
+    if (loggedUser.name) {
+      setUserRegistry(prev => ({
+        ...prev,
+        [phoneToUse]: loggedUser
+      }));
+    }
+
+    setUser(loggedUser);
+    
+    if (loggedUser.isAdmin) {
+      navigate('/admin');
+    } else {
+      if (location.pathname === '/profile' || !user) {
         navigate('/');
       }
-    } catch (error) {
-      console.error('Erreur lors de la connexion:', error);
     }
   };
 
-  const handleUpdateProfile = async (userData: Partial<User>) => {
+  const handleUpdateProfile = (userData: Partial<User>) => {
     if (user) {
-      try {
-        const updatedUser = { ...user, ...userData };
-        await userService.updateUser(user.id, updatedUser);
-        setUser(updatedUser);
-        navigate('/');
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour du profil:', error);
-      }
+      const updatedUser = { 
+        ...user, 
+        ...userData, 
+        isProfileComplete: !!(userData.name || user.name) 
+      };
+      
+      // Update global user
+      setUser(updatedUser);
+      
+      // Update persistent registry
+      setUserRegistry(prev => ({
+        ...prev,
+        [user.phone]: updatedUser
+      }));
     }
   };
 
   const handleLogout = () => {
     setUser(null);
     setSelectedPlant(null);
+    localStorage.removeItem('gm_user');
     navigate('/');
   };
 
-  // Admin handlers
-  const addPlant = (plant: Plant) => {
-    setPlants([plant, ...plants]);
-  };
-  
+  const addPlant = (plant: Plant) => setPlants([plant, ...plants]);
   const updatePlant = (plant: Plant) => setPlants(prev => prev.map(p => p.id === plant.id ? plant : p));
   const deletePlant = (id: string) => setPlants(prev => prev.filter(p => p.id !== id));
 
@@ -186,8 +178,7 @@ const AppContent: React.FC = () => {
     return dateB - dateA;
   });
 
-  // Entry point: If not logged in OR profile is not complete, focus on Profile/Login view
-  if (!user || (!user.isAdmin && !user.isProfileComplete)) {
+  if (!user) {
     return (
       <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl overflow-hidden">
         <Profile 
@@ -195,14 +186,14 @@ const AppContent: React.FC = () => {
           onLogin={handleLogin} 
           onLogout={handleLogout} 
           onUpdateProfile={handleUpdateProfile}
-          orders={[]} 
+          orders={orders} 
         />
       </div>
     );
   }
 
   return (
-    <Layout cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)} isLoggedIn={true}>
+    <Layout cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)} isLoggedIn={true} userName={user.name}>
       <Routes>
         <Route path="/" element={
           selectedPlant ? (
@@ -261,25 +252,14 @@ const AppContent: React.FC = () => {
         <Route path="/cart" element={
           <Cart 
             items={cart} 
+            user={user}
             onUpdateQuantity={updateQuantity} 
             onRemove={removeFromCart}
             onPlaceOrder={handlePlaceOrder}
           />
         } />
         <Route path="/profile" element={
-          user ? (
-            <Profile user={user} onLogin={handleLogin} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        <Route path="/order-history" element={
-          <OrderHistory orders={orders} />
-        } />
-        <Route path="/login" element={
-          <div className="min-h-screen bg-[#F5F5F5]">
-            <Login onLogin={(user) => { setUser(user); navigate('/'); }} />
-          </div>
+          <Profile user={user} onLogin={handleLogin} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
         } />
         <Route path="/admin" element={
           user.isAdmin ? (
