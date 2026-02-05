@@ -1,5 +1,8 @@
+
 {
   "name": "Green Market BF",
   "description": "Une application moderne pour l'achat de plantes au Burkina Faso, offrant la livraison locale à Ouaga et Bobo, des conseils d'entretien personnalisés et un suivi de commande intuitif.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "camera"
+  ]
 }

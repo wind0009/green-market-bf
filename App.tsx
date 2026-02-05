@@ -1,32 +1,67 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Catalog from './views/Catalog';
 import ProductDetails from './views/ProductDetails';
 import Cart from './views/Cart';
 import Admin from './views/Admin';
-import { Plant, CartItem, Order } from './types';
-import { PLANTS } from './constants';
+import Profile from './views/Profile';
+import { Plant, CartItem, Order, User } from './types';
+import { PLANTS as INITIAL_PLANTS } from './constants';
+import { cartService, orderService } from './services/firebaseService';
+import { userService } from './services/userService';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const [plants, setPlants] = useState<Plant[]>(INITIAL_PLANTS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
 
-  // Persistence (Mocking Firebase with LocalStorage)
+  // Firebase Persistence
   useEffect(() => {
-    const savedCart = localStorage.getItem('gm_cart');
-    const savedOrders = localStorage.getItem('gm_orders');
-    if (savedCart) setCart(JSON.parse(savedCart));
-    if (savedOrders) setOrders(JSON.parse(savedOrders));
-  }, []);
+    const loadData = async () => {
+      if (user) {
+        try {
+          // Charger le panier depuis Firebase
+          const userCart = await cartService.getCart(user.id);
+          setCart(userCart);
+          
+          // Charger toutes les commandes
+          const allOrders = await orderService.getOrders();
+          setOrders(allOrders);
+        } catch (error) {
+          console.error('Erreur lors du chargement des données:', error);
+        }
+      }
+    };
+    
+    loadData();
+  }, [user]);
 
+  // Sauvegarder le panier dans Firebase
   useEffect(() => {
-    localStorage.setItem('gm_cart', JSON.stringify(cart));
-    localStorage.setItem('gm_orders', JSON.stringify(orders));
-  }, [cart, orders]);
+    const saveCart = async () => {
+      if (user && cart.length > 0) {
+        try {
+          // Vider d'abord le panier existant
+          await cartService.clearCart(user.id);
+          
+          // Ajouter tous les articles du panier actuel
+          const savePromises = cart.map(item => cartService.addToCart(user.id, item));
+          await Promise.all(savePromises);
+        } catch (error) {
+          console.error('Erreur lors de la sauvegarde du panier:', error);
+        }
+      }
+    };
+    
+    saveCart();
+  }, [cart, user]);
 
   const addToCart = (plant: Plant) => {
     setCart(prev => {
@@ -52,17 +87,120 @@ const AppContent: React.FC = () => {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  const handlePlaceOrder = (order: Order) => {
-    setOrders([order, ...orders]);
-    setCart([]);
+  const handlePlaceOrder = async (order: Order) => {
+    const finalOrder = { ...order, userId: user?.id };
+    try {
+      await orderService.addOrder(finalOrder);
+      
+      // Recharger les commandes depuis Firebase
+      const allOrders = await orderService.getOrders();
+      setOrders(allOrders);
+      
+      // Vider le panier dans Firebase et localement
+      if (user) {
+        await cartService.clearCart(user.id);
+      }
+      setCart([]);
+    } catch (error) {
+      console.error('Erreur lors de la commande:', error);
+    }
   };
 
-  const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+  const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
+    try {
+      await orderService.updateOrderStatus(orderId, status);
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+    }
   };
+
+  const toggleWishlist = (id: string) => {
+    setWishlist(prev => prev.includes(id) ? prev.filter(wid => wid !== id) : [...prev, id]);
+  };
+
+  const handleLogin = async (phone: string, isAdmin: boolean = false) => {
+    try {
+      // Check if user already exists in Firebase
+      const savedUser = await userService.getUserByPhone(phone);
+      
+      const loggedUser: User = savedUser && savedUser.phone === phone ? savedUser : {
+        id: Math.random().toString(36).substr(2, 9),
+        phone,
+        isAdmin,
+        isProfileComplete: isAdmin, // Admins don't need profile completion step
+        addresses: []
+      };
+      
+      // Ensure admin flag is correctly set even for existing users
+      if (isAdmin) loggedUser.isAdmin = true;
+
+      // Save user to Firebase
+      await userService.saveUser(loggedUser);
+      setUser(loggedUser);
+      
+      if (isAdmin) {
+        navigate('/admin');
+      } else if (!loggedUser.isProfileComplete) {
+        navigate('/profile');
+      } else {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+    }
+  };
+
+  const handleUpdateProfile = async (userData: Partial<User>) => {
+    if (user) {
+      try {
+        const updatedUser = { ...user, ...userData };
+        await userService.updateUser(user.id, updatedUser);
+        setUser(updatedUser);
+        navigate('/');
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du profil:', error);
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setSelectedPlant(null);
+    navigate('/');
+  };
+
+  // Admin handlers
+  const addPlant = (plant: Plant) => {
+    setPlants([plant, ...plants]);
+  };
+  
+  const updatePlant = (plant: Plant) => setPlants(prev => prev.map(p => p.id === plant.id ? plant : p));
+  const deletePlant = (id: string) => setPlants(prev => prev.filter(p => p.id !== id));
+
+  const sortedPlants = [...plants].sort((a, b) => {
+    const dateA = a.dateAdded ? new Date(a.dateAdded).getTime() : 0;
+    const dateB = b.dateAdded ? new Date(b.dateAdded).getTime() : 0;
+    return dateB - dateA;
+  });
+
+  // Entry point: If not logged in OR profile is not complete, focus on Profile/Login view
+  if (!user || (!user.isAdmin && !user.isProfileComplete)) {
+    return (
+      <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl overflow-hidden">
+        <Profile 
+          user={user} 
+          onLogin={handleLogin} 
+          onLogout={handleLogout} 
+          onUpdateProfile={handleUpdateProfile}
+          orders={[]} 
+        />
+      </div>
+    );
+  }
 
   return (
-    <Layout cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)}>
+    <Layout cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)} isLoggedIn={true}>
       <Routes>
         <Route path="/" element={
           selectedPlant ? (
@@ -77,10 +215,46 @@ const AppContent: React.FC = () => {
             />
           ) : (
             <Catalog 
+              plants={sortedPlants}
+              wishlist={wishlist}
+              onToggleWishlist={toggleWishlist}
               onAddToCart={addToCart} 
               onSelectPlant={setSelectedPlant} 
             />
           )
+        } />
+        <Route path="/wishlist" element={
+          <div className="p-6 space-y-4 animate-fadeIn">
+             <div className="mb-6">
+                <h1 className="text-2xl font-black text-[#2D5A27]">Mes Coups de Cœur</h1>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Votre jardin idéal commence ici</p>
+             </div>
+             {wishlist.length === 0 ? (
+                <div className="text-center py-24 bg-white rounded-[40px] shadow-sm border border-gray-100 px-8">
+                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i className="fa-solid fa-heart-crack text-3xl text-gray-200"></i>
+                  </div>
+                  <h3 className="font-bold text-gray-800 mb-2">Aucune plante favorite ?</h3>
+                  <p className="text-gray-400 text-xs leading-relaxed">Parcourez notre catalogue et cliquez sur le cœur pour sauvegarder vos plantes préférées.</p>
+                </div>
+             ) : (
+                <div className="grid grid-cols-2 gap-4">
+                   {plants.filter(p => wishlist.includes(p.id)).map(p => (
+                      <div 
+                        key={p.id} 
+                        className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm active:scale-95 transition-transform" 
+                        onClick={() => setSelectedPlant(p)}
+                      >
+                         <img src={p.image} className="w-full h-32 object-cover" />
+                         <div className="p-4">
+                           <h4 className="font-bold text-xs truncate text-gray-800 mb-1">{p.name}</h4>
+                           <p className="text-[#2D5A27] font-black text-xs">{p.price} F</p>
+                         </div>
+                      </div>
+                   ))}
+                </div>
+             )}
+          </div>
         } />
         <Route path="/cart" element={
           <Cart 
@@ -90,44 +264,20 @@ const AppContent: React.FC = () => {
             onPlaceOrder={handlePlaceOrder}
           />
         } />
-        <Route path="/orders" element={
-          <div className="p-4 space-y-4">
-            <h1 className="text-2xl font-bold mb-6">Mes Commandes</h1>
-            {orders.length === 0 ? (
-              <div className="text-center py-20 text-gray-400">
-                <i className="fa-solid fa-box-open text-4xl mb-4"></i>
-                <p>Aucune commande passée.</p>
-              </div>
-            ) : (
-              orders.map(order => (
-                <div key={order.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-[10px] font-bold text-gray-400">CMD #{order.id}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      order.status === 'Livrée' ? 'bg-green-100 text-green-700' : 
-                      order.status === 'En attente' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-sm font-bold">{order.items.length} plante(s)</p>
-                      <p className="text-xs text-gray-500">{new Date(order.date).toLocaleDateString()}</p>
-                    </div>
-                    <span className="font-black text-[#2D5A27]">{order.total} F</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        <Route path="/profile" element={
+          <Profile user={user} onLogin={handleLogin} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
         } />
         <Route path="/admin" element={
-          <Admin 
-            orders={orders} 
-            plants={PLANTS} 
-            onUpdateOrderStatus={handleUpdateOrderStatus} 
-          />
+          user.isAdmin ? (
+            <Admin 
+              orders={orders} 
+              plants={plants} 
+              onUpdateOrderStatus={handleUpdateOrderStatus} 
+              onAddPlant={addPlant}
+              onUpdatePlant={updatePlant}
+              onDeletePlant={deletePlant}
+            />
+          ) : <Navigate to="/" />
         } />
       </Routes>
     </Layout>

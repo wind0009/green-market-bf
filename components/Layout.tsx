@@ -5,44 +5,51 @@ import { useLocation, useNavigate } from 'react-router-dom';
 interface LayoutProps {
   children: React.ReactNode;
   cartCount: number;
+  isLoggedIn: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, cartCount }) => {
+const Layout: React.FC<LayoutProps> = ({ children, cartCount, isLoggedIn }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const navItems = [
     { path: '/', icon: 'fa-house', label: 'Boutique' },
+    { path: '/wishlist', icon: 'fa-heart', label: 'Favoris' },
     { path: '/cart', icon: 'fa-shopping-cart', label: 'Panier', count: cartCount },
-    { path: '/orders', icon: 'fa-receipt', label: 'Commandes' },
-    { path: '/admin', icon: 'fa-user-shield', label: 'Admin' },
+    { path: '/profile', icon: 'fa-user', label: 'Profil' },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col max-w-md mx-auto bg-white shadow-xl relative">
+    <div className="min-h-screen flex flex-col max-w-md mx-auto bg-white shadow-xl relative overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#2D5A27] text-white p-4 flex justify-between items-center shadow-md">
-        <div className="flex items-center gap-2" onClick={() => navigate('/')}>
+        <div 
+          className="flex items-center gap-2 cursor-pointer select-none active:scale-95 transition-transform"
+          onClick={() => navigate('/')}
+        >
           <i className="fa-solid fa-leaf text-2xl"></i>
           <h1 className="text-xl font-bold tracking-tight">Green Market BF</h1>
         </div>
-        {location.pathname !== '/cart' && (
-           <button 
-            onClick={() => navigate('/cart')}
-            className="relative p-2"
-           >
-            <i className="fa-solid fa-cart-shopping text-xl"></i>
-            {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#E2725B] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-[#2D5A27]">
-                {cartCount}
-              </span>
-            )}
-           </button>
-        )}
+        
+        <div className="flex items-center gap-3">
+           {location.pathname !== '/cart' && (
+             <button 
+              onClick={() => navigate('/cart')}
+              className="relative p-2"
+             >
+              <i className="fa-solid fa-cart-shopping text-xl"></i>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#E2725B] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-[#2D5A27]">
+                  {cartCount}
+                </span>
+              )}
+             </button>
+           )}
+        </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow pb-24 overflow-y-auto">
+      <main className="flex-grow pb-24 overflow-y-auto bg-[#F5F5F5]">
         {children}
       </main>
 

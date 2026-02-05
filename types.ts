@@ -1,5 +1,5 @@
 
-export type Category = 'Intérieur' | 'Jardin' | 'Ombre' | 'Soleil' | 'Arbre' | 'Potager';
+export type Category = 'Intérieur' | 'Jardin' | 'Ombre' | 'Soleil' | 'Arbre' | 'Potager' | 'Médicinale' | 'Fruitier';
 
 export interface Plant {
   id: string;
@@ -16,6 +16,7 @@ export interface Plant {
     difficulty: 'Facile' | 'Moyen' | 'Expert';
   };
   stock: number;
+  dateAdded: string;
 }
 
 export interface CartItem extends Plant {
@@ -26,6 +27,7 @@ export type OrderStatus = 'En attente' | 'Validée' | 'Livrée' | 'Annulée';
 
 export interface Order {
   id: string;
+  userId?: string;
   items: CartItem[];
   total: number;
   customer: {
@@ -40,6 +42,20 @@ export interface Order {
   paymentMethod: 'Mobile Money' | 'Paiement à la livraison';
   status: OrderStatus;
   date: string;
+}
+
+export interface User {
+  id: string;
+  phone: string;
+  name?: string;
+  email?: string;
+  isAdmin?: boolean;
+  isProfileComplete?: boolean;
+  addresses: {
+    district: string;
+    city: string;
+    landmark: string;
+  }[];
 }
 
 export interface District {
