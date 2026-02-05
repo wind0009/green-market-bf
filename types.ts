@@ -47,8 +47,9 @@ export interface Order {
 export interface User {
   id: string;
   phone: string;
-  name?: string;
-  email?: string;
+  email: string;
+  password?: string;
+  name: string;
   isAdmin?: boolean;
   isProfileComplete?: boolean;
   addresses: {

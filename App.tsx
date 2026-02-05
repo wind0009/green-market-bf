@@ -19,7 +19,9 @@ const AppContent: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [userRegistry, setUserRegistry] = useState<Record<string, Partial<User>>>({});
+  
+  // Base de données simulée des utilisateurs enregistrés
+  const [authDatabase, setAuthDatabase] = useState<User[]>([]);
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
 
   // Persistence
@@ -29,14 +31,14 @@ const AppContent: React.FC = () => {
     const savedPlants = localStorage.getItem('gm_plants');
     const savedWishlist = localStorage.getItem('gm_wishlist');
     const savedUser = localStorage.getItem('gm_user');
-    const savedRegistry = localStorage.getItem('gm_user_registry');
+    const savedDatabase = localStorage.getItem('gm_auth_database');
 
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedOrders) setOrders(JSON.parse(savedOrders));
     if (savedPlants) setPlants(JSON.parse(savedPlants));
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedRegistry) setUserRegistry(JSON.parse(savedRegistry));
+    if (savedDatabase) setAuthDatabase(JSON.parse(savedDatabase));
   }, []);
 
   useEffect(() => {
@@ -44,13 +46,13 @@ const AppContent: React.FC = () => {
     localStorage.setItem('gm_orders', JSON.stringify(orders));
     localStorage.setItem('gm_plants', JSON.stringify(plants));
     localStorage.setItem('gm_wishlist', JSON.stringify(wishlist));
-    localStorage.setItem('gm_user_registry', JSON.stringify(userRegistry));
+    localStorage.setItem('gm_auth_database', JSON.stringify(authDatabase));
     if (user) {
       localStorage.setItem('gm_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('gm_user');
     }
-  }, [cart, orders, plants, wishlist, user, userRegistry]);
+  }, [cart, orders, plants, wishlist, user, authDatabase]);
 
   const addToCart = (plant: Plant) => {
     setCart(prev => {
@@ -79,18 +81,6 @@ const AppContent: React.FC = () => {
   const handlePlaceOrder = (order: Order) => {
     const finalOrder = { ...order, userId: user?.id };
     setOrders([finalOrder, ...orders]);
-    
-    // Mettre à jour le registre avec les infos de la commande
-    if (order.customer.phone && order.customer.name) {
-      setUserRegistry(prev => ({
-        ...prev,
-        [order.customer.phone]: { 
-          name: order.customer.name, 
-          phone: order.customer.phone 
-        }
-      }));
-    }
-    
     setCart([]);
   };
 
@@ -102,62 +92,41 @@ const AppContent: React.FC = () => {
     setWishlist(prev => prev.includes(id) ? prev.filter(wid => wid !== id) : [...prev, id]);
   };
 
-  const handleLogin = (phone: string, isAdmin: boolean = false, profileData?: Partial<User>) => {
-    const isSpecialAdmin = phone === 'ADMIN_MASTER';
-    const phoneToUse = isSpecialAdmin ? 'Admin Principal' : phone;
-
-    // 1. Chercher dans le registre (Données persistantes)
-    const registeredInfo = userRegistry[phoneToUse];
-    
-    // 2. Chercher dans l'historique des commandes (Fallback)
-    const historicalOrder = orders.find(o => o.customer.phone === phoneToUse);
-    const recoveredName = historicalOrder?.customer.name;
-
-    const loggedUser: User = {
-      id: registeredInfo?.id || user?.id || Math.random().toString(36).substr(2, 9),
-      phone: phoneToUse,
-      name: profileData?.name || registeredInfo?.name || recoveredName || '',
-      email: profileData?.email || registeredInfo?.email || '',
-      isAdmin: isAdmin || isSpecialAdmin,
-      isProfileComplete: !!(profileData?.name || registeredInfo?.name || recoveredName || isAdmin || isSpecialAdmin),
-      addresses: registeredInfo?.addresses || []
-    };
-    
-    // Sauvegarder dans le registre pour la prochaine fois
-    if (loggedUser.name) {
-      setUserRegistry(prev => ({
-        ...prev,
-        [phoneToUse]: loggedUser
-      }));
+  const handleSignup = (userData: User) => {
+    // Vérifier si l'utilisateur existe déjà
+    const exists = authDatabase.find(u => u.email === userData.email || u.phone === userData.phone);
+    if (exists) {
+      throw new Error("Un compte existe déjà avec cet email ou ce numéro.");
     }
-
-    setUser(loggedUser);
-    
-    if (loggedUser.isAdmin) {
-      navigate('/admin');
-    } else {
-      if (location.pathname === '/profile' || !user) {
-        navigate('/');
-      }
-    }
+    setAuthDatabase([...authDatabase, userData]);
+    setUser(userData);
+    navigate('/');
   };
 
-  const handleUpdateProfile = (userData: Partial<User>) => {
-    if (user) {
-      const updatedUser = { 
-        ...user, 
-        ...userData, 
-        isProfileComplete: !!(userData.name || user.name) 
+  const handleLogin = (identifier: string, password?: string, isSpecialAdmin: boolean = false) => {
+    if (isSpecialAdmin) {
+      const adminUser: User = {
+        id: 'admin_master',
+        name: 'Administrateur',
+        email: 'admin@greenmarket.bf',
+        phone: 'Admin',
+        isAdmin: true,
+        addresses: []
       };
-      
-      // Update global user
-      setUser(updatedUser);
-      
-      // Update persistent registry
-      setUserRegistry(prev => ({
-        ...prev,
-        [user.phone]: updatedUser
-      }));
+      setUser(adminUser);
+      navigate('/admin');
+      return;
+    }
+
+    const foundUser = authDatabase.find(u => 
+      (u.email === identifier || u.phone === identifier) && u.password === password
+    );
+
+    if (foundUser) {
+      setUser(foundUser);
+      navigate('/');
+    } else {
+      throw new Error("Identifiants incorrects.");
     }
   };
 
@@ -166,6 +135,14 @@ const AppContent: React.FC = () => {
     setSelectedPlant(null);
     localStorage.removeItem('gm_user');
     navigate('/');
+  };
+
+  const handleUpdateProfile = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      setAuthDatabase(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+    }
   };
 
   const addPlant = (plant: Plant) => setPlants([plant, ...plants]);
@@ -184,6 +161,7 @@ const AppContent: React.FC = () => {
         <Profile 
           user={user} 
           onLogin={handleLogin} 
+          onSignup={handleSignup}
           onLogout={handleLogout} 
           onUpdateProfile={handleUpdateProfile}
           orders={orders} 
@@ -259,7 +237,7 @@ const AppContent: React.FC = () => {
           />
         } />
         <Route path="/profile" element={
-          <Profile user={user} onLogin={handleLogin} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
+          <Profile user={user} onLogin={handleLogin} onSignup={handleSignup} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
         } />
         <Route path="/admin" element={
           user.isAdmin ? (

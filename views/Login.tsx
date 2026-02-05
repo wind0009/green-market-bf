@@ -44,9 +44,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       newErrors.name = 'Le nom est obligatoire';
     }
     
-    if (!validatePhone(phone)) {
-      setErrors(prev => ({ ...prev, ...newErrors }));
-      return false;
+    // Valider le téléphone sans modifier les erreurs
+    if (!phone || phone.length < 8) {
+      newErrors.phone = 'Veuillez entrer un numéro de téléphone valide';
     }
     
     setErrors(newErrors);
@@ -100,7 +100,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     
     setIsProcessing(true);
     try {
-      if (otp === '1234' || otp.length === 4) {
+      if (otp === '1234') {
         if (activeTab === 'register') {
           // Créer un nouvel utilisateur
           const newUser: User = {
@@ -125,7 +125,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           if (existingUser) {
             onLogin(existingUser);
           } else {
-            setErrors({ general: 'Utilisateur non trouvé. Veuillez créer un compte.' });
+            setErrors(prev => ({ ...prev, general: 'Utilisateur non trouvé. Veuillez créer un compte.' }));
           }
         }
       } else {
