@@ -267,7 +267,11 @@ const AppContent: React.FC = () => {
           />
         } />
         <Route path="/profile" element={
-          <Profile user={user} onLogin={handleLogin} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
+          user ? (
+            <Profile user={user} onLogin={handleLogin} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
+          ) : (
+            <Navigate to="/login" replace />
+          )
         } />
         <Route path="/order-history" element={
           <OrderHistory orders={orders} />
