@@ -273,7 +273,9 @@ const AppContent: React.FC = () => {
           <OrderHistory orders={orders} />
         } />
         <Route path="/login" element={
-          <Login onLogin={(user) => { setUser(user); navigate('/'); }} />
+          <div className="min-h-screen bg-[#F5F5F5]">
+            <Login onLogin={(user) => { setUser(user); navigate('/'); }} />
+          </div>
         } />
         <Route path="/admin" element={
           user.isAdmin ? (
