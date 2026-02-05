@@ -14,15 +14,46 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isExistingUser, setIsExistingUser] = useState(false);
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   // États pour l'inscription
   const [profileData, setProfileData] = useState({
     name: '',
-    email: ''
+    email: '',
+    city: 'Ouagadougou',
+    district: ''
   });
 
+  const validatePhone = (phone: string) => {
+    if (!phone || phone.length < 8) {
+      setErrors({ phone: 'Veuillez entrer un numéro de téléphone valide' });
+      return false;
+    }
+    setErrors({});
+    return true;
+  };
+
+  const validateRegister = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!profileData.name.trim()) {
+      newErrors.name = 'Le nom est obligatoire';
+    }
+    
+    if (!validatePhone(phone)) {
+      return false;
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSendOtp = async (isLogin: boolean) => {
-    if (phone.length < 8) return;
+    if (isLogin) {
+      if (!validatePhone(phone)) return;
+    } else {
+      if (!validateRegister()) return;
+    }
     
     setIsCheckingUser(true);
     try {
@@ -30,7 +61,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         // Pour la connexion, vérifier si l'utilisateur existe
         const existingUser = await userService.getUserByPhone(phone);
         if (!existingUser) {
-          alert('Ce numéro n\'est pas enregistré. Veuillez créer un compte.');
+          setErrors({ phone: 'Ce numéro n\'est pas enregistré. Veuillez créer un compte.' });
           setIsCheckingUser(false);
           return;
         }
@@ -39,7 +70,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         // Pour l'inscription, vérifier si l'utilisateur existe déjà
         const existingUser = await userService.getUserByPhone(phone);
         if (existingUser) {
-          alert('Ce numéro est déjà enregistré. Veuillez vous connecter.');
+          setErrors({ phone: 'Ce numéro est déjà enregistré. Veuillez vous connecter.' });
           setIsCheckingUser(false);
           return;
         }
@@ -50,14 +81,17 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       console.log("OTP Sent to " + phone);
     } catch (error) {
       console.error('Erreur lors de la vérification:', error);
-      setIsOtpSent(true);
+      setErrors({ general: 'Une erreur est survenue. Veuillez réessayer.' });
     } finally {
       setIsCheckingUser(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length < 4) return;
+    if (otp.length < 4) {
+      setErrors({ otp: 'Veuillez entrer le code à 4 chiffres' });
+      return;
+    }
     
     setIsProcessing(true);
     try {
@@ -71,7 +105,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             email: profileData.email,
             isAdmin: false,
             isProfileComplete: true,
-            addresses: []
+            addresses: profileData.district ? [{
+              district: profileData.district,
+              city: profileData.city,
+              landmark: ''
+            }] : []
           };
           
           await userService.saveUser(newUser);
@@ -84,11 +122,11 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           }
         }
       } else {
-        alert("Code incorrect (Essayez 1234)");
+        setErrors({ otp: 'Code incorrect (Essayez 1234)' });
       }
     } catch (error) {
       console.error('Erreur lors de la vérification:', error);
-      alert('Une erreur est survenue. Veuillez réessayer.');
+      setErrors({ general: 'Une erreur est survenue. Veuillez réessayer.' });
     } finally {
       setIsProcessing(false);
     }
@@ -100,57 +138,85 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setIsExistingUser(false);
     setIsCheckingUser(false);
     setIsProcessing(false);
+    setErrors({});
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#F5F5F5] to-[#E8F5E8] flex items-center justify-center p-6">
-      <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center">
         
-        {/* Header */}
-        <div className="bg-gradient-to-r from-[#2D5A27] to-[#3A6F35] p-6 text-white">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur">
-              <i className="fa-solid fa-leaf text-2xl"></i>
+        {/* Section gauche - Branding */}
+        <div className="hidden lg:flex flex-col justify-center items-center text-center p-8">
+          <div className="w-32 h-32 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl">
+            <i className="fa-solid fa-leaf text-5xl text-white"></i>
+          </div>
+          <h1 className="text-5xl font-black text-[#2D5A27] mb-4">Green Market BF</h1>
+          <p className="text-xl text-gray-600 mb-8">Votre marché de plantes local au Burkina Faso</p>
+          <div className="flex gap-8 text-gray-500">
+            <div className="text-center">
+              <i className="fa-solid fa-truck text-3xl text-[#2D5A27] mb-2"></i>
+              <p className="text-sm">Livraison rapide</p>
+            </div>
+            <div className="text-center">
+              <i className="fa-solid fa-leaf text-3xl text-[#2D5A27] mb-2"></i>
+              <p className="text-sm">Plantes locales</p>
+            </div>
+            <div className="text-center">
+              <i className="fa-solid fa-shield-alt text-3xl text-[#2D5A27] mb-2"></i>
+              <p className="text-sm">Paiement sécurisé</p>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-center mb-2">Green Market BF</h1>
-          <p className="text-white/80 text-sm text-center">Votre marché de plantes local</p>
         </div>
 
-        {/* Onglets */}
-        <div className="flex border-b border-gray-100">
-          <button
-            onClick={() => { setActiveTab('login'); resetForm(); }}
-            className={`flex-1 py-4 font-semibold text-sm transition-all ${
-              activeTab === 'login' 
-                ? 'text-[#2D5A27] border-b-2 border-[#2D5A27]' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            Se connecter
-          </button>
-          <button
-            onClick={() => { setActiveTab('register'); resetForm(); }}
-            className={`flex-1 py-4 font-semibold text-sm transition-all ${
-              activeTab === 'register' 
-                ? 'text-[#2D5A27] border-b-2 border-[#2D5A27]' 
-                : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            Créer un compte
-          </button>
-        </div>
+        {/* Section droite - Formulaire */}
+        <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-12 border border-gray-100">
+          
+          {/* Header mobile */}
+          <div className="flex lg:hidden items-center justify-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-2xl flex items-center justify-center">
+              <i className="fa-solid fa-leaf text-2xl text-white"></i>
+            </div>
+          </div>
 
-        {/* Contenu */}
-        <div className="p-6">
+          {/* Onglets */}
+          <div className="flex mb-8 bg-gray-50 rounded-2xl p-1">
+            <button
+              onClick={() => { setActiveTab('login'); resetForm(); }}
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+                activeTab === 'login' 
+                  ? 'bg-white text-[#2D5A27] shadow-md' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Se connecter
+            </button>
+            <button
+              onClick={() => { setActiveTab('register'); resetForm(); }}
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
+                activeTab === 'register' 
+                  ? 'bg-white text-[#2D5A27] shadow-md' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Créer un compte
+            </button>
+          </div>
+
+          {/* Messages d'erreur */}
+          {errors.general && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+              {errors.general}
+            </div>
+          )}
+
           {!isOtpSent ? (
             <div className="space-y-6">
               {/* Titre */}
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-gray-800 mb-2">
-                  {activeTab === 'login' ? 'Bienvenue de retour !' : 'Rejoignez-nous !'}
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  {activeTab === 'login' ? 'Bonjour !' : 'Bienvenue !'}
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-gray-600">
                   {activeTab === 'login' 
                     ? 'Connectez-vous à votre compte pour accéder à vos commandes'
                     : 'Créez votre compte et découvrez nos plantes locales'
@@ -159,34 +225,68 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
               </div>
 
               {/* Formulaire */}
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {activeTab === 'register' && (
                   <>
                     <div>
-                      <label className="text-xs font-bold text-gray-700 mb-2 block">Nom complet *</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Nom complet *
+                      </label>
                       <input
                         type="text"
-                        placeholder="Votre nom"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 outline-none focus:ring-2 focus:ring-[#2D5A27] font-medium transition-all"
+                        placeholder="Votre nom complet"
+                        className={`w-full px-4 py-4 rounded-xl border ${errors.name ? 'border-red-300 bg-red-50' : 'border-gray-200'} bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium`}
                         value={profileData.name}
                         onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                       />
+                      {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                     </div>
+
                     <div>
-                      <label className="text-xs font-bold text-gray-700 mb-2 block">Email (optionnel)</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Email (optionnel)
+                      </label>
                       <input
                         type="email"
                         placeholder="votre@email.com"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 outline-none focus:ring-2 focus:ring-[#2D5A27] font-medium transition-all"
+                        className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium"
                         value={profileData.email}
                         onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                       />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Ville
+                        </label>
+                        <select
+                          className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium"
+                          value={profileData.city}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, city: e.target.value }))}
+                        >
+                          <option value="Ouagadougou">Ouagadougou</option>
+                          <option value="Bobo-Dioulasso">Bobo-Dioulasso</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Quartier (optionnel)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Votre quartier"
+                          className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium"
+                          value={profileData.district}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, district: e.target.value }))}
+                        />
+                      </div>
                     </div>
                   </>
                 )}
                 
                 <div>
-                  <label className="text-xs font-bold text-gray-700 mb-2 block">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Numéro de téléphone *
                   </label>
                   <div className="relative">
@@ -194,79 +294,83 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     <input
                       type="tel"
                       placeholder="XX XX XX XX XX"
-                      className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-16 pr-4 outline-none focus:ring-2 focus:ring-[#2D5A27] font-medium transition-all"
+                      className={`w-full pl-16 pr-4 py-4 rounded-xl border ${errors.phone ? 'border-red-300 bg-red-50' : 'border-gray-200'} bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium text-lg`}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleSendOtp(activeTab === 'login')}
                     />
                   </div>
+                  {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
                 </div>
 
                 <button
                   onClick={() => handleSendOtp(activeTab === 'login')}
-                  disabled={phone.length < 8 || isCheckingUser || (activeTab === 'register' && !profileData.name.trim())}
-                  className="w-full bg-gradient-to-r from-[#2D5A27] to-[#3A6F35] text-white py-4 rounded-2xl font-bold text-sm uppercase tracking-widest shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all"
+                  disabled={isCheckingUser || isProcessing || (activeTab === 'register' && !profileData.name.trim()) || phone.length < 8}
+                  className="w-full bg-gradient-to-r from-[#2D5A27] to-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
                 >
                   {isCheckingUser ? 'Vérification...' : activeTab === 'login' ? 'Se connecter' : 'Créer mon compte'}
                 </button>
               </div>
             </div>
           ) : (
-            <div className="space-y-6 animate-slideIn">
+            <div className="space-y-6">
               {/* En-tête OTP */}
               <div className="text-center">
-                <div className="w-20 h-20 bg-[#2D5A27]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <i className="fa-solid fa-mobile-alt text-2xl text-[#2D5A27]"></i>
+                <div className="w-20 h-20 bg-gradient-to-br from-[#2D5A27]/10 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <i className="fa-solid fa-mobile-alt text-3xl text-[#2D5A27]"></i>
                 </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
                   Code de vérification
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Entrez le code envoyé au {phone}
+                <p className="text-gray-600">
+                  Entrez le code à 4 chiffres envoyé au {phone}
                 </p>
               </div>
 
               {/* Input OTP */}
               <div className="flex justify-center gap-3 mb-6">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`w-3 h-3 rounded-full transition-all duration-300 ${otp.length >= i ? 'bg-[#2D5A27] scale-125' : 'bg-gray-200'}`}></div>
+                  <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${otp.length >= i ? 'bg-gradient-to-r from-[#2D5A27] to-emerald-600 scale-125' : 'bg-gray-200'}`}></div>
                 ))}
               </div>
 
               <input
                 type="text"
                 placeholder="0000"
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-4 text-center text-2xl font-bold tracking-[0.5em] outline-none focus:ring-2 focus:ring-[#2D5A27] transition-all"
+                className={`w-full px-4 py-4 rounded-xl border ${errors.otp ? 'border-red-300 bg-red-50' : 'border-gray-200'} bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all text-center text-2xl font-bold tracking-[0.5em]`}
                 maxLength={4}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 autoFocus
                 onKeyPress={(e) => e.key === 'Enter' && handleVerifyOtp()}
               />
+              {errors.otp && <p className="mt-1 text-sm text-red-600 text-center">{errors.otp}</p>}
 
               <button
                 onClick={handleVerifyOtp}
                 disabled={otp.length < 4 || isProcessing}
-                className="w-full bg-gradient-to-r from-[#2D5A27] to-[#3A6F35] text-white py-4 rounded-2xl font-bold text-sm uppercase tracking-widest shadow-lg disabled:opacity-50 active:scale-[0.98] transition-all"
+                className="w-full bg-gradient-to-r from-[#2D5A27] to-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
               >
                 {isProcessing ? 'Traitement...' : 'Valider'}
               </button>
 
               <button 
                 onClick={resetForm}
-                className="w-full text-gray-400 text-xs font-bold uppercase tracking-widest border-b border-gray-200 pb-1"
+                className="w-full text-gray-500 font-medium hover:text-gray-700 transition-colors"
               >
-                Changer de numéro
+                ← Changer de numéro
               </button>
             </div>
           )}
-        </div>
 
-        {/* Footer */}
-        <div className="bg-gray-50 p-4 text-center">
-          <p className="text-xs text-gray-400">
-            En continuant, vous acceptez nos conditions d'utilisation
-          </p>
+          {/* Footer */}
+          <div className="mt-8 pt-8 border-t border-gray-100 text-center">
+            <p className="text-sm text-gray-500">
+              En continuant, vous acceptez nos{' '}
+              <span className="text-[#2D5A27] font-medium">conditions d'utilisation</span> et notre{' '}
+              <span className="text-[#2D5A27] font-medium">politique de confidentialité</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
