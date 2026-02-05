@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, Order } from '../types';
+import { userService } from '../services/userService';
 
 interface ProfileProps {
   user: User | null;
@@ -14,6 +15,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onLogout, onUpdateProf
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
   
   // Admin Secret Access
   const [logoTaps, setLogoTaps] = useState(0);
@@ -36,10 +39,21 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onLogout, onUpdateProf
     }
   };
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (phone.length >= 8) {
-      setIsOtpSent(true);
-      console.log("OTP Sent to " + phone);
+      setIsCheckingUser(true);
+      try {
+        // Vérifier si l'utilisateur existe déjà
+        const existingUser = await userService.getUserByPhone(phone);
+        setIsExistingUser(!!existingUser);
+        setIsOtpSent(true);
+        console.log("OTP Sent to " + phone);
+      } catch (error) {
+        console.error('Erreur lors de la vérification:', error);
+        setIsOtpSent(true); // Continue même si erreur
+      } finally {
+        setIsCheckingUser(false);
+      }
     }
   };
 
@@ -201,16 +215,24 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onLogout, onUpdateProf
               </div>
               <button
                 onClick={handleSendOtp}
-                disabled={phone.length < 8}
+                disabled={phone.length < 8 || isCheckingUser}
                 className="w-full bg-[#2D5A27] text-white py-5 rounded-[32px] font-black text-sm uppercase tracking-widest shadow-xl shadow-green-100 disabled:opacity-50 active:scale-[0.98] transition-all"
               >
-                Suivant
+                {isCheckingUser ? 'Vérification...' : 'Suivant'}
               </button>
             </div>
           ) : (
             <div className="w-full space-y-6 animate-slideIn">
               <div className="text-center">
-                <p className="text-sm font-bold text-gray-800 mb-4">Vérification du {phone}</p>
+                <p className="text-sm font-bold text-gray-800 mb-2">
+                  {isExistingUser ? 'Bienvenue de retour !' : 'Nouveau client ?'}
+                </p>
+                <p className="text-xs text-gray-500 mb-4">
+                  {isExistingUser 
+                    ? 'Connectez-vous à votre compte existant'
+                    : 'Créez votre compte en quelques instants'
+                  }
+                </p>
                 <div className="flex justify-center gap-3 mb-6">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className={`w-3 h-3 rounded-full transition-all duration-300 ${otp.length >= i ? 'bg-[#2D5A27] scale-125' : 'bg-gray-200'}`}></div>
@@ -232,7 +254,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onLogout, onUpdateProf
                 disabled={otp.length < 4}
                 className="w-full bg-[#2D5A27] text-white py-5 rounded-[28px] font-black text-sm uppercase tracking-widest shadow-xl shadow-green-100 active:scale-[0.98] transition-all disabled:opacity-50"
               >
-                Connexion
+                {isExistingUser ? 'Se connecter' : 'Créer mon compte'}
               </button>
               <button 
                 onClick={() => { setIsOtpSent(false); setOtp(''); }}
