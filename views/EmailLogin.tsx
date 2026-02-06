@@ -151,7 +151,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
       if (tapCount === 1) {
         tapTimer = setTimeout(() => {
           tapCount = 0;
-        }, 2000); // 2 secondes pour reset
+        }, 3000); // 3 secondes pour reset (plus de temps)
       } else if (tapCount === 3) {
         // 3 clics rapides sur le logo pour révéler l'accès admin
         setShowSecretLogin(true);
@@ -180,7 +180,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         
         {/* Section gauche - Branding */}
         <div className="hidden lg:flex flex-col justify-center items-center text-center p-8">
-          <div className="w-32 h-32 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl admin-secret-trigger cursor-pointer hover:scale-105 transition-transform">
+          <div className="w-32 h-32 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
             <i className="fa-solid fa-seedling text-5xl text-white"></i>
           </div>
           <h1 className="text-5xl font-black text-[#2D5A27] mb-4">Green Market BF</h1>
@@ -206,7 +206,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
           
           {/* Header mobile */}
           <div className="flex lg:hidden items-center justify-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-2xl flex items-center justify-center admin-secret-trigger cursor-pointer hover:scale-105 transition-transform">
+            <div className="w-16 h-16 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-2xl flex items-center justify-center admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
               <i className="fa-solid fa-seedling text-2xl text-white"></i>
             </div>
           </div>
@@ -408,7 +408,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
             
             {/* Indicateur secret */}
             <p className="text-xs text-gray-400 mt-4">
-              Cliquez 3 fois sur le logo pour l'accès admin
+              •
             </p>
           </div>
         </div>
