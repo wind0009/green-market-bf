@@ -2,6 +2,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
+  sendEmailVerification,
   User as FirebaseUser
 } from 'firebase/auth';
 import { auth } from '../src/firebase';
@@ -28,6 +29,9 @@ export class EmailAuthService {
       // Créer le compte Firebase
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = result.user;
+
+      // Envoyer l'email de vérification
+      await sendEmailVerification(firebaseUser);
 
       // Créer l'utilisateur pour notre application
       const appUser: User = {
@@ -69,6 +73,14 @@ export class EmailAuthService {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = result.user;
 
+      // Vérifier si l'email a été vérifié
+      if (!firebaseUser.emailVerified) {
+        return { 
+          success: false, 
+          error: 'Veuillez vérifier votre email avant de vous connecter. Un email de vérification a été envoyé.' 
+        };
+      }
+
       // Créer l'utilisateur pour notre application
       const appUser: User = {
         id: firebaseUser.uid,
@@ -98,6 +110,22 @@ export class EmailAuthService {
       }
       
       return { success: false, error: error.message || 'Erreur de connexion.' };
+    }
+  }
+
+  // Renvoyer l'email de vérification
+  async resendEmailVerification(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        return { success: false, error: 'Aucun utilisateur connecté.' };
+      }
+
+      await sendEmailVerification(user);
+      return { success: true };
+    } catch (error: any) {
+      console.error('Erreur envoi email de vérification:', error);
+      return { success: false, error: 'Impossible d\'envoyer l\'email de vérification.' };
     }
   }
 

@@ -10,6 +10,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   // Form states
@@ -46,6 +47,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     
     if (!validateForm()) return;
     
@@ -60,17 +62,53 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
           formData.password,
           formData.name
         );
+        
+        if (result.success) {
+          setSuccess('Compte créé avec succès ! Un email de vérification a été envoyé. Veuillez vérifier votre email avant de vous connecter.');
+          // Réinitialiser le formulaire
+          setFormData({
+            name: '',
+            email: '',
+            password: '',
+            confirmPassword: ''
+          });
+          // Passer en mode connexion
+          setAuthMode('login');
+        } else {
+          setError(result.error || 'Erreur lors de l\'inscription');
+        }
       } else {
         result = await emailAuthService.signIn(
           formData.email,
           formData.password
         );
+        
+        if (result.success && result.user) {
+          onLogin(result.user);
+        } else {
+          setError(result.error || 'Erreur lors de l\'authentification');
+        }
       }
-      
-      if (result.success && result.user) {
-        onLogin(result.user);
+    } catch (err: any) {
+      setError(err.message || 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!formData.email) {
+      setError('Veuillez entrer votre email d\'abord');
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const result = await emailAuthService.resendEmailVerification();
+      if (result.success) {
+        setSuccess('Email de vérification renvoyé !');
       } else {
-        setError(result.error || 'Erreur lors de l\'authentification');
+        setError(result.error || 'Impossible de renvoyer l\'email');
       }
     } catch (err: any) {
       setError(err.message || 'Une erreur est survenue');
@@ -140,10 +178,34 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
             </button>
           </div>
 
+          {/* Message de succès */}
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-check-circle"></i>
+                <span>{success}</span>
+              </div>
+            </div>
+          )}
+
           {/* Message d'erreur */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-              {error}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <i className="fa-solid fa-exclamation-circle"></i>
+                  <span>{error}</span>
+                </div>
+                {error.includes('vérifier votre email') && (
+                  <button
+                    onClick={handleResendVerification}
+                    disabled={loading}
+                    className="ml-4 text-xs bg-red-100 hover:bg-red-200 px-3 py-1 rounded-lg transition-colors"
+                  >
+                    Renvoyer
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
