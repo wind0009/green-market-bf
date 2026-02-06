@@ -22,24 +22,29 @@ export class FirebaseAuthService {
 
   // Initialiser le reCAPTCHA
   initializeRecaptcha(containerId: string): void {
-    this.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-      'size': 'invisible',
-      'callback': (response: any) => {
-        // reCAPTCHA solved, allow signInWithPhoneNumber.
-        console.log('reCAPTCHA résolu');
-      },
-      'expired-callback': () => {
-        // Response expired. Ask user to solve reCAPTCHA again.
-        console.log('reCAPTCHA expiré');
-      }
-    });
+    try {
+      this.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          console.log('reCAPTCHA résolu');
+        },
+        'expired-callback': () => {
+          console.log('reCAPTCHA expiré');
+        }
+      });
+    } catch (error) {
+      console.error('Erreur initialisation reCAPTCHA:', error);
+    }
   }
 
   // Envoyer le code de vérification par SMS
   async sendOTP(phoneNumber: string): Promise<AuthResult> {
     try {
       if (!this.recaptchaVerifier) {
-        throw new Error('reCAPTCHA non initialisé');
+        // Réinitialiser reCAPTCHA si nécessaire
+        this.initializeRecaptcha('recaptcha-container');
+        // Attendre un peu que reCAPTCHA soit prêt
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       // Nettoyer et formater le numéro de téléphone
@@ -49,6 +54,8 @@ export class FirebaseAuthService {
       }
 
       const formattedPhone = `+226${cleanPhone}`;
+      
+      console.log('Tentative envoi SMS vers:', formattedPhone);
       
       const confirmationResult = await signInWithPhoneNumber(
         auth, 
@@ -70,9 +77,11 @@ export class FirebaseAuthService {
         return { success: false, error: 'Numéro de téléphone invalide.' };
       } else if (error.code === 'auth/quota-exceeded') {
         return { success: false, error: 'Service temporairement indisponible. Réessayez plus tard.' };
+      } else if (error.code === 'auth/operation-not-allowed') {
+        return { success: false, error: 'L\'authentification par téléphone n\'est pas activée. Vérifiez la configuration Firebase.' };
       }
       
-      return { success: false, error: 'Impossible d\'envoyer le code de vérification.' };
+      return { success: false, error: error.message || 'Impossible d\'envoyer le code de vérification.' };
     }
   }
 

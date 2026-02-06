@@ -29,9 +29,19 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   // Initialiser reCAPTCHA au montage du composant
   useEffect(() => {
-    if (recaptchaContainerRef.current) {
-      firebaseAuthService.initializeRecaptcha('recaptcha-container');
-    }
+    // Attendre que le DOM soit chargé
+    const timer = setTimeout(() => {
+      if (recaptchaContainerRef.current) {
+        try {
+          firebaseAuthService.initializeRecaptcha('recaptcha-container');
+          console.log('reCAPTCHA initialisé avec succès');
+        } catch (error) {
+          console.error('Erreur initialisation reCAPTCHA:', error);
+        }
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const validatePhone = (phone: string): boolean => {
