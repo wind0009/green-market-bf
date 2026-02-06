@@ -13,6 +13,8 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const [success, setSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showSecretLogin, setShowSecretLogin] = useState(false);
+  const [isHoldingLogo, setIsHoldingLogo] = useState(false);
+  const [holdProgress, setHoldProgress] = useState(0);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -143,57 +145,108 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   // Détecter le maintien du logo (adaptée pour mobile)
   useEffect(() => {
     let holdTimer: NodeJS.Timeout;
+    let progressTimer: NodeJS.Timeout;
     let isHolding = false;
+    let startTime: number;
     
-    const handleMouseDown = () => {
+    const startHold = () => {
       isHolding = true;
+      startTime = Date.now();
+      setIsHoldingLogo(true);
+      setHoldProgress(0);
+      
+      console.log('🔵 Début du maintien du logo');
+      
+      // Timer principal pour 5 secondes
       holdTimer = setTimeout(() => {
         if (isHolding) {
+          console.log('✅ 5 secondes atteintes - Affichage admin');
           setShowSecretLogin(true);
+          setIsHoldingLogo(false);
+          setHoldProgress(100);
         }
-      }, 5000); // 5 secondes de maintien
-    };
-    
-    const handleMouseUp = () => {
-      isHolding = false;
-      clearTimeout(holdTimer);
-    };
-    
-    const handleTouchStart = () => {
-      isHolding = true;
-      holdTimer = setTimeout(() => {
+      }, 5000);
+      
+      // Timer pour la progression
+      progressTimer = setInterval(() => {
         if (isHolding) {
-          setShowSecretLogin(true);
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min((elapsed / 5000) * 100, 100);
+          setHoldProgress(progress);
+          console.log(`⏱️ Progression: ${progress.toFixed(0)}%`);
         }
-      }, 5000); // 5 secondes de maintien
+      }, 100);
     };
     
-    const handleTouchEnd = () => {
+    const endHold = () => {
       isHolding = false;
+      setIsHoldingLogo(false);
+      setHoldProgress(0);
       clearTimeout(holdTimer);
+      clearInterval(progressTimer);
+      console.log('🔴 Fin du maintien du logo');
+    };
+    
+    // Événements mouse
+    const handleMouseDown = (e: Event) => {
+      e.preventDefault();
+      startHold();
+    };
+    
+    const handleMouseUp = (e: Event) => {
+      e.preventDefault();
+      endHold();
+    };
+    
+    const handleMouseLeave = (e: Event) => {
+      e.preventDefault();
+      endHold();
+    };
+    
+    // Événements touch
+    const handleTouchStart = (e: Event) => {
+      e.preventDefault();
+      console.log('📱 Touch start détecté');
+      startHold();
+    };
+    
+    const handleTouchEnd = (e: Event) => {
+      e.preventDefault();
+      console.log('📱 Touch end détecté');
+      endHold();
+    };
+    
+    const handleTouchCancel = (e: Event) => {
+      e.preventDefault();
+      console.log('📱 Touch cancel détecté');
+      endHold();
     };
     
     // Ajouter des écouteurs sur le logo
     const logoElement = document.querySelector('.admin-secret-trigger');
     if (logoElement) {
+      console.log('✅ Logo trouvé, ajout des écouteurs');
       logoElement.addEventListener('mousedown', handleMouseDown);
       logoElement.addEventListener('mouseup', handleMouseUp);
-      logoElement.addEventListener('mouseleave', handleMouseUp);
+      logoElement.addEventListener('mouseleave', handleMouseLeave);
       logoElement.addEventListener('touchstart', handleTouchStart);
       logoElement.addEventListener('touchend', handleTouchEnd);
-      logoElement.addEventListener('touchcancel', handleTouchEnd);
+      logoElement.addEventListener('touchcancel', handleTouchCancel);
+    } else {
+      console.log('❌ Logo non trouvé');
     }
     
     return () => {
       if (logoElement) {
         logoElement.removeEventListener('mousedown', handleMouseDown);
         logoElement.removeEventListener('mouseup', handleMouseUp);
-        logoElement.removeEventListener('mouseleave', handleMouseUp);
+        logoElement.removeEventListener('mouseleave', handleMouseLeave);
         logoElement.removeEventListener('touchstart', handleTouchStart);
         logoElement.removeEventListener('touchend', handleTouchEnd);
-        logoElement.removeEventListener('touchcancel', handleTouchEnd);
+        logoElement.removeEventListener('touchcancel', handleTouchCancel);
       }
       clearTimeout(holdTimer);
+      clearInterval(progressTimer);
     };
   }, []);
 
@@ -203,8 +256,19 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         
         {/* Section gauche - Branding */}
         <div className="hidden lg:flex flex-col justify-center items-center text-center p-8">
-          <div className="w-32 h-32 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
-            <i className="fa-solid fa-seedling text-5xl text-white"></i>
+          <div className="relative">
+            <div className="w-32 h-32 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
+              <i className="fa-solid fa-seedling text-5xl text-white"></i>
+            </div>
+            
+            {/* Indicateur de progression */}
+            {isHoldingLogo && (
+              <div className="absolute inset-0 w-32 h-32 rounded-3xl border-4 border-yellow-400 flex items-center justify-center">
+                <div className="text-yellow-400 font-bold text-lg">
+                  {Math.round(holdProgress)}%
+                </div>
+              </div>
+            )}
           </div>
           <h1 className="text-5xl font-black text-[#2D5A27] mb-4">Green Market BF</h1>
           <p className="text-xl text-gray-600 mb-8">Authentification 100% gratuite et sécurisée</p>
@@ -229,8 +293,19 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
           
           {/* Header mobile */}
           <div className="flex lg:hidden items-center justify-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-2xl flex items-center justify-center admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
-              <i className="fa-solid fa-seedling text-2xl text-white"></i>
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-2xl flex items-center justify-center admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
+                <i className="fa-solid fa-seedling text-2xl text-white"></i>
+              </div>
+              
+              {/* Indicateur de progression mobile */}
+              {isHoldingLogo && (
+                <div className="absolute inset-0 w-16 h-16 rounded-2xl border-4 border-yellow-400 flex items-center justify-center">
+                  <div className="text-yellow-400 font-bold text-xs">
+                    {Math.round(holdProgress)}%
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
