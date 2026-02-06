@@ -145,7 +145,6 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   // Détecter 5 clics sur le logo pour accès admin
   useEffect(() => {
     let clickCount = 0;
-    let clickTimer: NodeJS.Timeout;
     
     const handleLogoClick = (e: Event) => {
       e.preventDefault();
@@ -153,20 +152,11 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
       
       console.log(`🔵 Clic ${clickCount}/5 sur le logo`);
       
-      // Réinitialiser après 2 secondes d'inactivité
-      if (clickCount === 1) {
-        clickTimer = setTimeout(() => {
-          console.log('🔴 Reset - 2 secondes écoulées');
-          clickCount = 0;
-        }, 2000);
-      }
-      
       // Si 5 clics atteints
       if (clickCount === 5) {
         console.log('✅ 5 clics atteints - Affichage admin');
         setShowSecretLogin(true);
         clickCount = 0;
-        clearTimeout(clickTimer);
       }
     };
     
@@ -185,7 +175,6 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         logoElement.removeEventListener('click', handleLogoClick);
         logoElement.removeEventListener('touchstart', handleLogoClick);
       }
-      clearTimeout(clickTimer);
     };
   }, []);
 
