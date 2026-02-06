@@ -8,6 +8,7 @@ import Cart from './views/Cart';
 import Admin from './views/Admin';
 import Profile from './views/Profile';
 import Login from './views/Login';
+import EmailLogin from './views/EmailLogin';
 import { Plant, CartItem, Order, User } from './types';
 import { PLANTS as INITIAL_PLANTS } from './constants';
 
@@ -24,6 +25,7 @@ const AppContent: React.FC = () => {
   // Base de données simulée des utilisateurs enregistrés
   const [authDatabase, setAuthDatabase] = useState<User[]>([]);
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
+  const [authMethod, setAuthMethod] = useState<'sms' | 'email'>('email');
 
   // Persistence
   useEffect(() => {
@@ -159,10 +161,45 @@ const AppContent: React.FC = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
-        <Login onLogin={(userData) => {
-          setUser(userData);
-          navigate('/');
-        }} />
+        {authMethod === 'email' ? (
+          <EmailLogin onLogin={(userData) => {
+            setUser(userData);
+            navigate('/');
+          }} />
+        ) : (
+          <Login onLogin={(userData) => {
+            setUser(userData);
+            navigate('/');
+          }} />
+        )}
+        
+        {/* Sélecteur de méthode d'authentification */}
+        <div className="fixed bottom-4 right-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100">
+          <div className="flex gap-2 text-sm">
+            <button
+              onClick={() => setAuthMethod('email')}
+              className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                authMethod === 'email' 
+                  ? 'bg-[#2D5A27] text-white' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <i className="fa-solid fa-envelope mr-2"></i>
+              Email
+            </button>
+            <button
+              onClick={() => setAuthMethod('sms')}
+              className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                authMethod === 'sms' 
+                  ? 'bg-[#2D5A27] text-white' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <i className="fa-solid fa-mobile-alt mr-2"></i>
+              SMS
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
