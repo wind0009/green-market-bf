@@ -7,6 +7,7 @@ import ProductDetails from './views/ProductDetails';
 import Cart from './views/Cart';
 import Admin from './views/Admin';
 import Profile from './views/Profile';
+import Login from './views/Login';
 import { Plant, CartItem, Order, User } from './types';
 import { PLANTS as INITIAL_PLANTS } from './constants';
 
@@ -157,15 +158,11 @@ const AppContent: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-2xl overflow-hidden">
-        <Profile 
-          user={user} 
-          onLogin={handleLogin} 
-          onSignup={handleSignup}
-          onLogout={handleLogout} 
-          onUpdateProfile={handleUpdateProfile}
-          orders={orders} 
-        />
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
+        <Login onLogin={(userData) => {
+          setUser(userData);
+          navigate('/');
+        }} />
       </div>
     );
   }

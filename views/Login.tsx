@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types';
+import { firebaseAuthService, AuthResult } from '../services/firebaseAuthService';
 import { userService } from '../services/userService';
 
 interface LoginProps {
@@ -15,6 +16,8 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [confirmationResult, setConfirmationResult] = useState<any>(null);
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
   // États pour l'inscription
   const [profileData, setProfileData] = useState({
@@ -23,6 +26,13 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     city: 'Ouagadougou',
     district: ''
   });
+
+  // Initialiser reCAPTCHA au montage du composant
+  useEffect(() => {
+    if (recaptchaContainerRef.current) {
+      firebaseAuthService.initializeRecaptcha('recaptcha-container');
+    }
+  }, []);
 
   const validatePhone = (phone: string): boolean => {
     if (!phone || phone.length < 8) {
@@ -61,79 +71,67 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     }
     
     setIsCheckingUser(true);
+    setErrors({});
+    
     try {
-      if (isLogin) {
-        // Pour la connexion, vérifier si l'utilisateur existe
-        const existingUser = await userService.getUserByPhone(phone);
-        if (!existingUser) {
-          setErrors(prev => ({ ...prev, phone: 'Ce numéro n\'est pas enregistré. Veuillez créer un compte.' }));
-          setIsCheckingUser(false);
-          return;
-        }
-        setIsExistingUser(true);
-      } else {
-        // Pour l'inscription, vérifier si l'utilisateur existe déjà
-        const existingUser = await userService.getUserByPhone(phone);
-        if (existingUser) {
-          setErrors(prev => ({ ...prev, phone: 'Ce numéro est déjà enregistré. Veuillez vous connecter.' }));
-          setIsCheckingUser(false);
-          return;
-        }
-        setIsExistingUser(false);
-      }
+      const result: AuthResult = await firebaseAuthService.sendOTP(phone);
       
-      setIsOtpSent(true);
-      console.log("OTP Sent to " + phone);
+      if (result.success && result.confirmationResult) {
+        setConfirmationResult(result.confirmationResult);
+        setIsOtpSent(true);
+        console.log(`SMS envoyé au ${phone}`);
+      } else {
+        setErrors({ general: result.error || 'Erreur lors de l\'envoi du SMS' });
+      }
     } catch (error) {
-      console.error('Erreur lors de la vérification:', error);
-      setErrors(prev => ({ ...prev, general: 'Une erreur est survenue. Veuillez réessayer.' }));
+      console.error('Erreur lors de l\'envoi SMS:', error);
+      setErrors({ general: 'Une erreur est survenue. Veuillez réessayer.' });
     } finally {
       setIsCheckingUser(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length < 4) {
-      setErrors(prev => ({ ...prev, otp: 'Veuillez entrer le code à 4 chiffres' }));
+    if (otp.length < 6) {
+      setErrors(prev => ({ ...prev, otp: 'Veuillez entrer le code à 6 chiffres' }));
+      return;
+    }
+    
+    if (!confirmationResult) {
+      setErrors(prev => ({ ...prev, general: 'Aucun code envoyé. Veuillez d\'abord demander un code.' }));
       return;
     }
     
     setIsProcessing(true);
+    setErrors({});
+    
     try {
-      if (otp === '1234') {
-        if (activeTab === 'register') {
-          // Créer un nouvel utilisateur
-          const newUser: User = {
-            id: Math.random().toString(36).substr(2, 9),
-            phone,
-            name: profileData.name,
-            email: profileData.email,
-            isAdmin: false,
-            isProfileComplete: true,
-            addresses: profileData.district ? [{
-              district: profileData.district,
-              city: profileData.city,
-              landmark: ''
-            }] : []
-          };
-          
-          await userService.saveUser(newUser);
-          onLogin(newUser);
-        } else {
-          // Connexion d'un utilisateur existant
-          const existingUser = await userService.getUserByPhone(phone);
-          if (existingUser) {
-            onLogin(existingUser);
-          } else {
-            setErrors(prev => ({ ...prev, general: 'Utilisateur non trouvé. Veuillez créer un compte.' }));
-          }
-        }
+      const userData = activeTab === 'register' ? {
+        name: profileData.name,
+        email: profileData.email,
+        addresses: profileData.district ? [{
+          district: profileData.district,
+          city: profileData.city,
+          landmark: ''
+        }] : []
+      } : undefined;
+      
+      const result: AuthResult = await firebaseAuthService.verifyOTP(
+        confirmationResult, 
+        otp, 
+        userData
+      );
+      
+      if (result.success && result.user) {
+        // Sauvegarder l'utilisateur dans Firestore
+        await userService.saveUser(result.user);
+        onLogin(result.user);
       } else {
-        setErrors(prev => ({ ...prev, otp: 'Code incorrect (Essayez 1234)' }));
+        setErrors({ general: result.error || 'Code incorrect.' });
       }
     } catch (error) {
       console.error('Erreur lors de la vérification:', error);
-      setErrors(prev => ({ ...prev, general: 'Une erreur est survenue. Veuillez réessayer.' }));
+      setErrors({ general: 'Une erreur est survenue. Veuillez réessayer.' });
     } finally {
       setIsProcessing(false);
     }
@@ -146,6 +144,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setIsCheckingUser(false);
     setIsProcessing(false);
     setErrors({});
+    setConfirmationResult(null);
   };
 
   return (
@@ -330,22 +329,22 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   Code de vérification
                 </h3>
                 <p className="text-gray-600">
-                  Entrez le code à 4 chiffres envoyé au {phone}
+                  Entrez le code à 6 chiffres envoyé au {phone}
                 </p>
               </div>
 
               {/* Input OTP */}
               <div className="flex justify-center gap-3 mb-6">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div key={i} className={`w-4 h-4 rounded-full transition-all duration-300 ${otp.length >= i ? 'bg-gradient-to-r from-[#2D5A27] to-emerald-600 scale-125' : 'bg-gray-200'}`}></div>
                 ))}
               </div>
 
               <input
                 type="text"
-                placeholder="0000"
+                placeholder="000000"
                 className={`w-full px-4 py-4 rounded-xl border ${errors.otp ? 'border-red-300 bg-red-50' : 'border-gray-200'} bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all text-center text-2xl font-bold tracking-[0.5em]`}
-                maxLength={4}
+                maxLength={6}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 autoFocus
@@ -355,7 +354,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
               <button
                 onClick={handleVerifyOtp}
-                disabled={otp.length < 4 || isProcessing}
+                disabled={otp.length < 6 || isProcessing}
                 className="w-full bg-gradient-to-r from-[#2D5A27] to-emerald-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
               >
                 {isProcessing ? 'Traitement...' : 'Valider'}
@@ -380,6 +379,9 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </div>
         </div>
       </div>
+      
+      {/* Conteneur reCAPTCHA invisible pour Firebase */}
+      <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
     </div>
   );
 };

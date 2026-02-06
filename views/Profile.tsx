@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { User, Order, CartItem } from '../types';
+import { firebaseAuthService } from '../services/firebaseAuthService';
 
 interface ProfileProps {
   user: User | null;
@@ -79,11 +80,16 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
     }
   };
 
-  const handleAdminSecretLogin = () => {
-    if (adminUsername === 'admin' && adminPassword === '1234') {
-      onLogin('ADMIN', 'ADMIN', true);
-    } else {
-      alert("Identifiants admin incorrects");
+  const handleAdminSecretLogin = async () => {
+    try {
+      const result = await firebaseAuthService.signInWithEmail('admin@greenmarket.bf', 'admin1234');
+      if (result.success && result.user) {
+        onLogin(result.user.id, result.user.password, true);
+      } else {
+        alert("Identifiants admin incorrects");
+      }
+    } catch (error) {
+      alert("Erreur de connexion admin");
     }
   };
 
