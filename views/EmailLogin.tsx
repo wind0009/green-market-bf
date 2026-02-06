@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { emailAuthService, AuthResult } from '../services/emailAuthService';
+import AdminLogin from './AdminLogin';
 
 interface EmailLoginProps {
   onLogin: (user: User) => void;
@@ -13,6 +14,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const [success, setSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showSecretLogin, setShowSecretLogin] = useState(false);
+  const [showAdminPage, setShowAdminPage] = useState(false);
   const [isHoldingLogo, setIsHoldingLogo] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
 
@@ -154,8 +156,8 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
       
       // Si 5 clics atteints
       if (clickCount === 5) {
-        console.log('✅ 5 clics atteints - Affichage admin');
-        setShowSecretLogin(true);
+        console.log('✅ 5 clics atteints - Affichage page admin');
+        setShowAdminPage(true);
         clickCount = 0;
       }
     };
@@ -177,6 +179,16 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
       }
     };
   }, []);
+
+  // Si on est sur la page admin, afficher la page admin séparée
+  if (showAdminPage) {
+    return (
+      <AdminLogin 
+        onLogin={onLogin}
+        onBack={() => setShowAdminPage(false)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
