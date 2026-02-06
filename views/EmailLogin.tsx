@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { emailAuthService, AuthResult } from '../services/emailAuthService';
 
@@ -12,6 +12,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showSecretLogin, setShowSecretLogin] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -19,6 +20,11 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     email: '',
     password: '',
     confirmPassword: ''
+  });
+
+  const [secretData, setSecretData] = useState({
+    secret: '',
+    adminPassword: ''
   });
 
   const validateForm = (): boolean => {
@@ -117,6 +123,46 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     }
   };
 
+  const handleSecretLogin = async () => {
+    if (secretData.secret === 'admin' && secretData.adminPassword === '1234') {
+      const adminUser: User = {
+        id: 'admin-secret',
+        phone: 'Admin',
+        email: 'admin@greenmarket.bf',
+        name: 'Administrateur',
+        isAdmin: true,
+        isProfileComplete: true,
+        addresses: []
+      };
+      onLogin(adminUser);
+    } else {
+      setError('Identifiants admin incorrects');
+    }
+  };
+
+  // Détecter la séquence secrète (admin + admin)
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'a') {
+        const timer = setTimeout(() => {
+          setShowSecretLogin(true);
+        }, 1000);
+        
+        const handleSecondA = (e: KeyboardEvent) => {
+          if (e.key === 'd') {
+            clearTimeout(timer);
+            setShowSecretLogin(true);
+          }
+        };
+        
+        document.addEventListener('keydown', handleSecondA, { once: true });
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center">
@@ -124,7 +170,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         {/* Section gauche - Branding */}
         <div className="hidden lg:flex flex-col justify-center items-center text-center p-8">
           <div className="w-32 h-32 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl">
-            <i className="fa-solid fa-envelope text-5xl text-white"></i>
+            <i className="fa-solid fa-seedling text-5xl text-white"></i>
           </div>
           <h1 className="text-5xl font-black text-[#2D5A27] mb-4">Green Market BF</h1>
           <p className="text-xl text-gray-600 mb-8">Authentification 100% gratuite et sécurisée</p>
@@ -150,7 +196,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
           {/* Header mobile */}
           <div className="flex lg:hidden items-center justify-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-2xl flex items-center justify-center">
-              <i className="fa-solid fa-envelope text-2xl text-white"></i>
+              <i className="fa-solid fa-seedling text-2xl text-white"></i>
             </div>
           </div>
 
@@ -293,6 +339,36 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
             </button>
           </form>
 
+          {/* Formulaire secret admin */}
+          {showSecretLogin && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <h3 className="text-sm font-semibold text-yellow-800 mb-3">Accès Administrateur</h3>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Code secret"
+                  className="w-full px-3 py-2 text-sm border border-yellow-300 rounded-lg bg-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none"
+                  value={secretData.secret}
+                  onChange={(e) => setSecretData({...secretData, secret: e.target.value})}
+                />
+                <input
+                  type="password"
+                  placeholder="Mot de passe admin"
+                  className="w-full px-3 py-2 text-sm border border-yellow-300 rounded-lg bg-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none"
+                  value={secretData.adminPassword}
+                  onChange={(e) => setSecretData({...secretData, adminPassword: e.target.value})}
+                />
+                <button
+                  onClick={handleSecretLogin}
+                  disabled={loading}
+                  className="w-full bg-yellow-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 disabled:opacity-50 transition-colors"
+                >
+                  Connexion Admin
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Footer */}
           <div className="mt-8 pt-8 border-t border-gray-100 text-center">
             <p className="text-sm text-gray-500">
@@ -317,6 +393,11 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                   </button>
                 </>
               )}
+            </p>
+            
+            {/* Indicateur secret */}
+            <p className="text-xs text-gray-400 mt-4">
+              Tapez "ad" rapidement pour l'accès admin
             </p>
           </div>
         </div>
