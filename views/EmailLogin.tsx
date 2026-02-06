@@ -140,37 +140,60 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     }
   };
 
-  // Détecter la séquence secrète (adaptée pour mobile)
+  // Détecter le maintien du logo (adaptée pour mobile)
   useEffect(() => {
-    let tapCount = 0;
-    let tapTimer: NodeJS.Timeout;
+    let holdTimer: NodeJS.Timeout;
+    let isHolding = false;
     
-    const handleLogoClick = () => {
-      tapCount++;
-      
-      if (tapCount === 1) {
-        tapTimer = setTimeout(() => {
-          tapCount = 0;
-        }, 3000); // 3 secondes pour reset (plus de temps)
-      } else if (tapCount === 3) {
-        // 3 clics rapides sur le logo pour révéler l'accès admin
-        setShowSecretLogin(true);
-        tapCount = 0;
-        clearTimeout(tapTimer);
-      }
+    const handleMouseDown = () => {
+      isHolding = true;
+      holdTimer = setTimeout(() => {
+        if (isHolding) {
+          setShowSecretLogin(true);
+        }
+      }, 5000); // 5 secondes de maintien
     };
     
-    // Ajouter un écouteur sur le logo
+    const handleMouseUp = () => {
+      isHolding = false;
+      clearTimeout(holdTimer);
+    };
+    
+    const handleTouchStart = () => {
+      isHolding = true;
+      holdTimer = setTimeout(() => {
+        if (isHolding) {
+          setShowSecretLogin(true);
+        }
+      }, 5000); // 5 secondes de maintien
+    };
+    
+    const handleTouchEnd = () => {
+      isHolding = false;
+      clearTimeout(holdTimer);
+    };
+    
+    // Ajouter des écouteurs sur le logo
     const logoElement = document.querySelector('.admin-secret-trigger');
     if (logoElement) {
-      logoElement.addEventListener('click', handleLogoClick);
+      logoElement.addEventListener('mousedown', handleMouseDown);
+      logoElement.addEventListener('mouseup', handleMouseUp);
+      logoElement.addEventListener('mouseleave', handleMouseUp);
+      logoElement.addEventListener('touchstart', handleTouchStart);
+      logoElement.addEventListener('touchend', handleTouchEnd);
+      logoElement.addEventListener('touchcancel', handleTouchEnd);
     }
     
     return () => {
       if (logoElement) {
-        logoElement.removeEventListener('click', handleLogoClick);
+        logoElement.removeEventListener('mousedown', handleMouseDown);
+        logoElement.removeEventListener('mouseup', handleMouseUp);
+        logoElement.removeEventListener('mouseleave', handleMouseUp);
+        logoElement.removeEventListener('touchstart', handleTouchStart);
+        logoElement.removeEventListener('touchend', handleTouchEnd);
+        logoElement.removeEventListener('touchcancel', handleTouchEnd);
       }
-      if (tapTimer) clearTimeout(tapTimer);
+      clearTimeout(holdTimer);
     };
   }, []);
 
