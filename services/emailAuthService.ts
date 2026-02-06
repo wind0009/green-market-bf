@@ -31,7 +31,18 @@ export class EmailAuthService {
       const firebaseUser = result.user;
 
       // Envoyer l'email de vérification
-      await sendEmailVerification(firebaseUser);
+      try {
+        await sendEmailVerification(firebaseUser);
+        console.log('✅ Email de vérification envoyé à:', email);
+      } catch (emailError: any) {
+        console.error('Erreur envoi email de vérification:', emailError);
+        // En développement, on continue même si l'email échoue
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔧 Mode développement: Email de vérification contourné');
+        } else {
+          return { success: false, error: 'Impossible d\'envoyer l\'email de vérification.' };
+        }
+      }
 
       // Créer l'utilisateur pour notre application
       const appUser: User = {
@@ -73,12 +84,17 @@ export class EmailAuthService {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const firebaseUser = result.user;
 
-      // Vérifier si l'email a été vérifié
-      if (!firebaseUser.emailVerified) {
-        return { 
-          success: false, 
-          error: 'Veuillez vérifier votre email avant de vous connecter. Un email de vérification a été envoyé.' 
-        };
+      // En développement, on peut ignorer la vérification email
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔧 Mode développement: Vérification email ignorée');
+      } else {
+        // Vérifier si l'email a été vérifié
+        if (!firebaseUser.emailVerified) {
+          return { 
+            success: false, 
+            error: 'Veuillez vérifier votre email avant de vous connecter. Un email de vérification a été envoyé.' 
+          };
+        }
       }
 
       // Créer l'utilisateur pour notre application
