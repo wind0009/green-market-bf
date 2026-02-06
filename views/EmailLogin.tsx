@@ -165,7 +165,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     if (logoElement) {
       console.log('✅ Logo trouvé, ajout des écouteurs');
       logoElement.addEventListener('click', handleLogoClick);
-      logoElement.addEventListener('touchstart', handleLogoClick); // Support tactile
+      logoElement.addEventListener('touchend', handleLogoClick); // Support tactile plus fiable
     } else {
       console.log('❌ Logo non trouvé');
     }
@@ -173,7 +173,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     return () => {
       if (logoElement) {
         logoElement.removeEventListener('click', handleLogoClick);
-        logoElement.removeEventListener('touchstart', handleLogoClick);
+        logoElement.removeEventListener('touchend', handleLogoClick);
       }
     };
   }, []);
