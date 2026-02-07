@@ -33,7 +33,7 @@ export interface Order {
   customer: {
     name: string;
     phone: string;
-    city: 'Ouagadougou' | 'Bobo-Dioulasso';
+    city: string;
     district: string;
     landmark: string;
     method: 'Livraison' | 'Retrait';
@@ -61,6 +61,6 @@ export interface User {
 
 export interface District {
   name: string;
-  city: 'Ouagadougou' | 'Bobo-Dioulasso';
-  deliveryFee: number;
+  city: string;
+  landmark: string;
 }

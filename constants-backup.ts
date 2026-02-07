@@ -1,3 +1,4 @@
+
 import { Plant, District } from './types';
 
 export const PLANTS: Plant[] = [
@@ -84,10 +85,10 @@ export const PLANTS: Plant[] = [
     name: 'Monstera Deliciosa',
     localName: 'Monstera',
     scientificName: 'Monstera deliciosa',
-    price: 6000,
+    price: 6500,
     category: 'Intérieur',
-    image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&q=80&w=400',
-    description: 'Plante tropicale iconique avec ses feuilles découpées spectaculaires.',
+    image: 'https://images.unsplash.com/photo-1558391868-578c084b5a6b?auto=format&fit=crop&q=80&w=400',
+    description: 'Plante tendance avec feuilles découpées, idéale pour la décoration intérieure.',
     care: { water: '1-2 fois/semaine', sun: 'Lumière vive indirecte', difficulty: 'Facile' },
     stock: 12,
     dateAdded: '2024-01-01T00:00:00.000Z'
@@ -99,8 +100,8 @@ export const PLANTS: Plant[] = [
     scientificName: 'Cereus peruvianus',
     price: 4000,
     category: 'Cactus',
-    image: 'https://images.unsplash.com/photo-1509423248145-add7540f8a6b?auto=format&fit=crop&q=80&w=400',
-    description: 'Grand cactus colonnaire résistant parfait pour les zones sèches.',
+    image: 'https://images.unsplash.com/photo-1559309803-1df026a6492d?auto=format&fit=crop&q=80&w=400',
+    description: 'Cactus vertical majestueux, parfait pour les intérieurs modernes.',
     care: { water: '1 fois/mois', sun: 'Plein soleil', difficulty: 'Très facile' },
     stock: 18,
     dateAdded: '2024-01-01T00:00:00.000Z'
@@ -112,10 +113,10 @@ export const PLANTS: Plant[] = [
     scientificName: 'Ficus lyrata',
     price: 7500,
     category: 'Intérieur',
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=400',
-    description: 'Plante d\'intérieur élégante avec de grandes feuilles en forme de violon.',
+    image: 'https://images.unsplash.com/photo-1485955900006-10f4d5245140?auto=format&fit=crop&q=80&w=400',
+    description: 'Plante d\'intérieur élégante avec grandes feuilles en forme de violon.',
     care: { water: '1 fois/semaine', sun: 'Lumière vive', difficulty: 'Moyen' },
-    stock: 6,
+    stock: 8,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -125,10 +126,10 @@ export const PLANTS: Plant[] = [
     scientificName: 'Dracaena marginata',
     price: 5500,
     category: 'Intérieur',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
-    description: 'Arbre d\'intérieur décoratif avec feuillage coloré et élancé.',
-    care: { water: '1 fois/semaine', sun: 'Lumière indirecte', difficulty: 'Facile' },
-    stock: 14,
+    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&q=80&w=400',
+    description: 'Plante décorative avec feuilles fines et colorées, idéale pour l\'intérieur.',
+    care: { water: '1-2 fois/semaine', sun: 'Lumière indirecte', difficulty: 'Facile' },
+    stock: 15,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -136,12 +137,12 @@ export const PLANTS: Plant[] = [
     name: 'Neem',
     localName: 'Azadirachta',
     scientificName: 'Azadirachta indica',
-    price: 4500,
-    category: 'Médicinale',
-    image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&q=80&w=400',
-    description: 'Arbre médicinal sacré aux multiples propriétés thérapeutiques.',
+    price: 6000,
+    category: 'Arbre',
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=400',
+    description: 'Arbre médicinal sacré aux propriétés insecticides et médicinales.',
     care: { water: 'Modéré', sun: 'Plein soleil', difficulty: 'Facile' },
-    stock: 9,
+    stock: 6,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -149,10 +150,10 @@ export const PLANTS: Plant[] = [
     name: 'Baobab',
     localName: 'Baobab Africain',
     scientificName: 'Adansonia digitata',
-    price: 12000,
+    price: 15000,
     category: 'Arbre',
-    image: 'https://images.unsplash.com/photo-1540206395-6880857c32f2?auto=format&fit=crop&q=80&w=400',
-    description: 'Arbre emblématique d\'Afrique, symbole de longévité et de force.',
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=400',
+    description: 'Arbre emblématique d\'Afrique, symbole de longévité et de résistance.',
     care: { water: 'Rare', sun: 'Plein soleil', difficulty: 'Facile' },
     stock: 3,
     dateAdded: '2024-01-01T00:00:00.000Z'
@@ -162,12 +163,12 @@ export const PLANTS: Plant[] = [
     name: 'Kinkeliba',
     localName: 'Kinkeliba',
     scientificName: 'Combretum micranthum',
-    price: 3000,
-    category: 'Médicinale',
-    image: 'https://images.unsplash.com/photo-1540206395-6880857c32f2?auto=format&fit=crop&q=80&w=400',
-    description: 'Plante médicinale africaine utilisée en tisane pour ses vertus.',
+    price: 3500,
+    category: 'Arbuste',
+    image: 'https://images.unsplash.com/photo-1559309803-1df026a6492d?auto=format&fit=crop&q=80&w=400',
+    description: 'Plante médicinale utilisée en infusion pour ses vertus digestives.',
     care: { water: 'Modéré', sun: 'Mi-ombre', difficulty: 'Facile' },
-    stock: 16,
+    stock: 25,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -175,12 +176,12 @@ export const PLANTS: Plant[] = [
     name: 'Moringa',
     localName: 'Moringa',
     scientificName: 'Moringa oleifera',
-    price: 3500,
-    category: 'Médicinale',
-    image: 'https://images.unsplash.com/photo-1540206395-6880857c32f2?auto=format&fit=crop&q=80&w=400',
+    price: 4500,
+    category: 'Arbre',
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=400',
     description: 'Arbre miracle aux feuilles riches en nutriments et vitamines.',
     care: { water: 'Régulier', sun: 'Plein soleil', difficulty: 'Facile' },
-    stock: 11,
+    stock: 12,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -189,11 +190,11 @@ export const PLANTS: Plant[] = [
     localName: 'Bougainvillier',
     scientificName: 'Bougainvillea glabra',
     price: 4000,
-    category: 'Arbuste',
-    image: 'https://images.unsplash.com/photo-1592219458244-65e8d5b7f3d9?auto=format&fit=crop&q=80&w=400',
-    description: 'Arbuste grimpant aux fleurs papillons colorées toute l\'année.',
+    category: 'Soleil',
+    image: 'https://images.unsplash.com/photo-1589311142503-4f9113d09a0f?auto=format&fit=crop&q=80&w=400',
+    description: 'Arbuste grimpant avec fleurs colorées spectaculaires.',
     care: { water: 'Modéré', sun: 'Plein soleil', difficulty: 'Facile' },
-    stock: 13,
+    stock: 20,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -201,10 +202,10 @@ export const PLANTS: Plant[] = [
     name: 'Palmier Phoenix',
     localName: 'Palmier Dattier',
     scientificName: 'Phoenix dactylifera',
-    price: 9000,
+    price: 12000,
     category: 'Palmier',
-    image: 'https://images.unsplash.com/photo-1540206395-6880857c32f2?auto=format&fit=crop&q=80&w=400',
-    description: 'Palmier majestueux produisant des dattes sucrées.',
+    image: 'https://images.unsplash.com/photo-1598114853012-b9121d99e024?auto=format&fit=crop&q=80&w=400',
+    description: 'Palmier élégant pour jardins et grands espaces.',
     care: { water: 'Régulier', sun: 'Plein soleil', difficulty: 'Moyen' },
     stock: 5,
     dateAdded: '2024-01-01T00:00:00.000Z'
@@ -214,12 +215,12 @@ export const PLANTS: Plant[] = [
     name: 'Yucca',
     localName: 'Yucca',
     scientificName: 'Yucca elephantipes',
-    price: 5000,
+    price: 5500,
     category: 'Intérieur',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
-    description: 'Plante d\'intérieur robuste au feuillage architectural moderne.',
-    care: { water: '1 fois/2 semaines', sun: 'Lumière vive', difficulty: 'Facile' },
-    stock: 7,
+    image: 'https://images.unsplash.com/photo-1559309803-1df026a6492d?auto=format&fit=crop&q=80&w=400',
+    description: 'Plante d\'intérieur robuste avec feuilles rigides et élégantes.',
+    care: { water: '1-2 fois/semaine', sun: 'Lumière vive', difficulty: 'Facile' },
+    stock: 14,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -229,10 +230,10 @@ export const PLANTS: Plant[] = [
     scientificName: 'Succulent mix',
     price: 2500,
     category: 'Cactus',
-    image: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?auto=format&fit=crop&q=80&w=400',
+    image: 'https://images.unsplash.com/photo-1559309803-1df026a6492d?auto=format&fit=crop&q=80&w=400',
     description: 'Assortiment de plantes grasses colorées et faciles d\'entretien.',
-    care: { water: '1 fois/2 semaines', sun: 'Lumière vive', difficulty: 'Très facile' },
-    stock: 25,
+    care: { water: '2 fois/mois', sun: 'Plein soleil', difficulty: 'Très facile' },
+    stock: 30,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -242,10 +243,10 @@ export const PLANTS: Plant[] = [
     scientificName: 'Nephrolepis exaltata',
     price: 3500,
     category: 'Ombre',
-    image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=80&w=400',
-    description: 'Fougère luxuriante parfaite pour les pièces humides et ombragées.',
-    care: { water: '2 fois/semaine', sun: 'Ombre', difficulty: 'Moyen' },
-    stock: 10,
+    image: 'https://images.unsplash.com/photo-1597055181300-e3633a907519?auto=format&fit=crop&q=80&w=400',
+    description: 'Fougère luxuriante parfaite pour les zones ombragées.',
+    care: { water: '2-3 fois/semaine', sun: 'Ombre', difficulty: 'Moyen' },
+    stock: 16,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -253,12 +254,12 @@ export const PLANTS: Plant[] = [
     name: 'Lierre',
     localName: 'Lierre Grimpant',
     scientificName: 'Hedera helix',
-    price: 2800,
+    price: 3000,
     category: 'Ombre',
-    image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&q=80&w=400',
-    description: 'Plante grimpante élégante pour décorer murs et treillis.',
-    care: { water: '1-2 fois/semaine', sun: 'Ombre à mi-ombre', difficulty: 'Facile' },
-    stock: 18,
+    image: 'https://images.unsplash.com/photo-1614594956663-99d7e00e831c?auto=format&fit=crop&q=80&w=400',
+    description: 'Plante grimpante idéale pour murs et treillis.',
+    care: { water: '1-2 fois/semaine', sun: 'Ombre à lumière', difficulty: 'Facile' },
+    stock: 22,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -266,12 +267,12 @@ export const PLANTS: Plant[] = [
     name: 'Orchidée Phalaenopsis',
     localName: 'Orchidée Papillon',
     scientificName: 'Phalaenopsis',
-    price: 6500,
+    price: 8000,
     category: 'Intérieur',
-    image: 'https://images.unsplash.com/photo-1540206395-6880857c32f2?auto=format&fit=crop&q=80&w=400',
-    description: 'Orchidée élégante aux fleurs durables en forme de papillon.',
+    image: 'https://images.unsplash.com/photo-1589311142503-4f9113d09a0f?auto=format&fit=crop&q=80&w=400',
+    description: 'Orchidée élégante avec fleurs durables et magnifiques.',
     care: { water: '1 fois/semaine', sun: 'Lumière indirecte', difficulty: 'Moyen' },
-    stock: 8,
+    stock: 10,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -279,12 +280,12 @@ export const PLANTS: Plant[] = [
     name: 'Philodendron',
     localName: 'Philodendron',
     scientificName: 'Philodendron scandens',
-    price: 4200,
+    price: 4000,
     category: 'Intérieur',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
-    description: 'Plante d\'intérieure populaire au feuillage brillant et aéré.',
+    image: 'https://images.unsplash.com/photo-1614594956663-99d7e00e831c?auto=format&fit=crop&q=80&w=400',
+    description: 'Plante d\'intérieur populaire avec feuilles en forme de cœur.',
     care: { water: '1 fois/semaine', sun: 'Lumière indirecte', difficulty: 'Facile' },
-    stock: 15,
+    stock: 18,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -292,12 +293,12 @@ export const PLANTS: Plant[] = [
     name: 'Géraniums',
     localName: 'Géranium',
     scientificName: 'Pelargonium',
-    price: 2200,
+    price: 2000,
     category: 'Soleil',
-    image: 'https://images.unsplash.com/photo-1592219458244-65e8d5b7f3d9?auto=format&fit=crop&q=80&w=400',
-    description: 'Fleurs colorées et parfumées pour balcons et jardinières.',
+    image: 'https://images.unsplash.com/photo-1589311142503-4f9113d09a0f?auto=format&fit=crop&q=80&w=400',
+    description: 'Fleurs colorées et généreuses pour balcons et jardinières.',
     care: { water: 'Régulier', sun: 'Plein soleil', difficulty: 'Facile' },
-    stock: 22,
+    stock: 35,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -305,12 +306,12 @@ export const PLANTS: Plant[] = [
     name: 'Herbes Aromatiques',
     localName: 'Herbes Aromatiques',
     scientificName: 'Herb mix',
-    price: 1800,
-    category: 'Potager',
-    image: 'https://images.unsplash.com/photo-1598666789798-1628d4d0a621?auto=format&fit=crop&q=80&w=400',
-    description: 'Collection d\'herbes aromatiques pour cuisine et bien-être.',
+    price: 1500,
+    category: 'Jardin',
+    image: 'https://images.unsplash.com/photo-1598114853012-b9121d99e024?auto=format&fit=crop&q=80&w=400',
+    description: 'Assortiment de persil, menthe, basilic pour cuisine.',
     care: { water: 'Régulier', sun: 'Plein soleil', difficulty: 'Facile' },
-    stock: 30,
+    stock: 40,
     dateAdded: '2024-01-01T00:00:00.000Z'
   },
   {
@@ -318,36 +319,28 @@ export const PLANTS: Plant[] = [
     name: 'Bambou Chanceux',
     localName: 'Bambou',
     scientificName: 'Dracaena sanderiana',
-    price: 3800,
+    price: 3000,
     category: 'Intérieur',
-    image: 'https://images.unsplash.com/photo-1540206395-6880857c32f2?auto=format&fit=crop&q=80&w=400',
-    description: 'Plante porte-bonheur selon le feng shui, parfaite pour bureau.',
-    care: { water: 'Eau distillée', sun: 'Lumière indirecte', difficulty: 'Très facile' },
-    stock: 20,
+    image: 'https://images.unsplash.com/photo-1559309803-1df026a6492d?auto=format&fit=crop&q=80&w=400',
+    description: 'Bambou porte-bonheur parfait pour bureaux et intérieurs.',
+    care: { water: '1 fois/semaine', sun: 'Lumière indirecte', difficulty: 'Très facile' },
+    stock: 25,
     dateAdded: '2024-01-01T00:00:00.000Z'
   }
 ];
 
 export const DISTRICTS: District[] = [
-  { id: '1', name: 'Ouagadougou', city: 'Ouagadougou', landmark: 'Centre-ville' },
-  { id: '2', name: 'Bobo-Dioulasso', city: 'Bobo-Dioulasso', landmark: 'Marché central' },
-  { id: '3', name: 'Koudougou', city: 'Koudougou', landmark: 'Place de la Nation' },
-  { id: '4', name: 'Banfora', city: 'Banfora', landmark: 'Cascade de Karfiguéla' },
-  { id: '5', name: 'Ouahigouya', city: 'Ouahigouya', landmark: 'Zone industrielle' },
-  { id: '6', name: 'Kaya', city: 'Kaya', landmark: 'Centre commercial' },
-  { id: '7', name: 'Tenkodogo', city: 'Tenkodogo', landmark: 'Gare routière' },
-  { id: '8', name: 'Fada N\'Gourma', city: 'Fada N\'Gourma', landmark: 'Place du marché' },
-  { id: '9', name: 'Dédougou', city: 'Dédougou', landmark: 'Hôpital régional' },
-  { id: '10', name: 'Dori', city: 'Dori', landmark: 'Préfecture' },
-  { id: '11', name: 'Gaoua', city: 'Gaoua', landmark: 'Centre artisanal' },
-  { id: '12', name: 'Boulsa', city: 'Boulsa', landmark: 'Mission catholique' },
-  { id: '13', name: 'Kongoussi', city: 'Kongoussi', landmark: 'Barrage' }
+  { name: 'Ouaga 2000', city: 'Ouagadougou', deliveryFee: 1500 },
+  { name: 'Patte d\'Oie', city: 'Ouagadougou', deliveryFee: 1000 },
+  { name: 'Dassasgho', city: 'Ouagadougou', deliveryFee: 1000 },
+  { name: 'Pissy', city: 'Ouagadougou', deliveryFee: 1500 },
+  { name: 'Koulouba', city: 'Ouagadougou', deliveryFee: 500 },
+  { name: 'Sya', city: 'Bobo-Dioulasso', deliveryFee: 1000 },
+  { name: 'Sarala', city: 'Bobo-Dioulasso', deliveryFee: 1000 },
 ];
 
 export const THEME = {
   primary: '#2D5A27',
-  secondary: '#E2725B',
-  accent: '#F8FAF8',
-  text: '#333333',
-  border: '#E5E7EB'
+  secondary: '#F5F5F5',
+  accent: '#E2725B', // Terracotta
 };
