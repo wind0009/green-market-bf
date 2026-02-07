@@ -15,6 +15,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showSecretLogin, setShowSecretLogin] = useState(false);
   const [showAdminPage, setShowAdminPage] = useState(false);
+  const [showMobileAdminButton, setShowMobileAdminButton] = useState(false);
   const [isHoldingLogo, setIsHoldingLogo] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
 
@@ -144,83 +145,66 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     }
   };
 
-  // Détecter 5 clics sur le logo pour accès admin
+  // Détecter si on est sur mobile et afficher bouton admin
   useEffect(() => {
-    let clickCount = 0;
-    let lastClickTime = 0;
-    const CLICK_TIMEOUT = 1000; // 1 seconde entre les clics max
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
-    const handleLogoInteraction = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
+    if (isMobile) {
+      // Sur mobile, afficher le bouton admin après 2 secondes
+      const timer = setTimeout(() => {
+        setShowMobileAdminButton(true);
+      }, 2000);
       
-      const now = Date.now();
+      return () => clearTimeout(timer);
+    } else {
+      // Sur desktop, garder la méthode des 5 clics
+      let clickCount = 0;
+      let lastClickTime = 0;
+      const CLICK_TIMEOUT = 1000;
       
-      // Éviter les double-clics rapides sur mobile
-      if (now - lastClickTime < 100) {
-        return;
-      }
-      
-      lastClickTime = now;
-      clickCount++;
-      
-      console.log(`🔵 Clic ${clickCount}/5 sur le logo - Type: ${e.type}`);
-      
-      // Si 5 clics atteints
-      if (clickCount === 5) {
-        console.log('✅ 5 clics atteints - Affichage page admin');
-        setShowAdminPage(true);
-        clickCount = 0;
-      }
-      
-      // Reset après timeout
-      setTimeout(() => {
-        if (clickCount > 0) {
-          console.log('🔴 Reset timeout - clics annulés');
+      const handleLogoInteraction = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const now = Date.now();
+        
+        if (now - lastClickTime < 100) {
+          return;
+        }
+        
+        lastClickTime = now;
+        clickCount++;
+        
+        console.log(`🔵 Clic ${clickCount}/5 sur le logo - Type: ${e.type}`);
+        
+        if (clickCount === 5) {
+          console.log('✅ 5 clics atteints - Affichage page admin');
+          setShowAdminPage(true);
           clickCount = 0;
         }
-      }, CLICK_TIMEOUT);
-    };
-    
-    // Détecter si on est sur mobile
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    console.log(`📱 Plateforme détectée: ${isMobile ? 'Mobile' : 'Desktop'}`);
-    
-    // Ajouter des écouteurs sur le logo avec stratégie adaptée
-    const logoElement = document.querySelector('.admin-secret-trigger');
-    if (logoElement) {
-      console.log('✅ Logo trouvé, ajout des écouteurs');
+        
+        setTimeout(() => {
+          if (clickCount > 0) {
+            console.log('🔴 Reset timeout - clics annulés');
+            clickCount = 0;
+          }
+        }, CLICK_TIMEOUT);
+      };
       
-      if (isMobile) {
-        // Stratégie mobile : événements tactiles uniquement
-        logoElement.addEventListener('touchstart', handleLogoInteraction, { passive: false });
-        logoElement.addEventListener('touchend', handleLogoInteraction, { passive: false });
-        
-        // Ajouter support pour les mobiles spécifiques
-        logoElement.addEventListener('pointerdown', handleLogoInteraction, { passive: false });
-        
-        console.log('📱 Écouteurs mobiles ajoutés');
-      } else {
-        // Stratégie desktop : événements souris
+      const logoElement = document.querySelector('.admin-secret-trigger');
+      if (logoElement) {
+        console.log('✅ Logo trouvé, ajout des écouteurs desktop');
         logoElement.addEventListener('click', handleLogoInteraction);
         logoElement.addEventListener('mousedown', handleLogoInteraction);
-        
-        console.log('🖥️ Écouteurs desktop ajoutés');
       }
-    } else {
-      console.log('❌ Logo non trouvé');
+      
+      return () => {
+        if (logoElement) {
+          logoElement.removeEventListener('click', handleLogoInteraction);
+          logoElement.removeEventListener('mousedown', handleLogoInteraction);
+        }
+      };
     }
-    
-    return () => {
-      if (logoElement) {
-        // Nettoyer tous les écouteurs
-        logoElement.removeEventListener('touchstart', handleLogoInteraction);
-        logoElement.removeEventListener('touchend', handleLogoInteraction);
-        logoElement.removeEventListener('pointerdown', handleLogoInteraction);
-        logoElement.removeEventListener('click', handleLogoInteraction);
-        logoElement.removeEventListener('mousedown', handleLogoInteraction);
-      }
-    };
   }, []);
 
   // Si on est sur la page admin, afficher la page admin séparée
@@ -437,6 +421,17 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Bouton admin mobile - apparaît après 2 secondes */}
+          {showMobileAdminButton && (
+            <button
+              onClick={() => setShowAdminPage(true)}
+              className="fixed bottom-4 right-4 bg-orange-500 text-white p-3 rounded-full shadow-lg z-50 hover:bg-orange-600 transition-colors"
+              title="Accès Administrateur"
+            >
+              <i className="fa-solid fa-shield-halved text-lg"></i>
+            </button>
           )}
 
           {/* Footer */}
