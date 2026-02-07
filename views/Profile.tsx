@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Order, User } from '../types';
 import VendorSubscription from './VendorSubscription';
+import VendorCodeModal from './VendorCodeModal';
 import { firebaseAuthService } from '../services/firebaseAuthService';
 
 interface ProfileProps {
@@ -34,6 +35,22 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
   
   // Vendor states
   const [showVendorSubscription, setShowVendorSubscription] = useState(false);
+  const [showVendorCodeModal, setShowVendorCodeModal] = useState(false);
+  const [vendorCode, setVendorCode] = useState('');
+
+  const handleAccessVendor = (vendorId: string, vendorName: string) => {
+    // Rediriger vers la page produits premium du vendeur
+    window.location.hash = `#/vendor-products/${vendorId}`;
+  };
+
+  useEffect(() => {
+    const handleOpenVendorSubscription = () => {
+      setShowVendorSubscription(true);
+    };
+    
+    window.addEventListener('openVendorSubscription', handleOpenVendorSubscription);
+    return () => window.removeEventListener('openVendorSubscription', handleOpenVendorSubscription);
+  }, []);
 
   const handleLogoClick = () => {
     const newCount = logoTaps + 1;
@@ -66,7 +83,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           name: formData.name,
           email: formData.email || `${formData.phone}@greenmarket.bf`,
           phone: formData.phone,
-          password: formData.password,
+          isAdmin: false,
+          isProfileComplete: true,
           addresses: []
         };
         onSignup(newUser);
@@ -87,7 +105,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
     try {
       const result = await firebaseAuthService.signInWithEmail('admin@greenmarket.bf', 'admin1234');
       if (result.success && result.user) {
-        onLogin(result.user.id, result.user.password, true);
+        onLogin(result.user.id, undefined, true);
       } else {
         alert("Identifiants admin incorrects");
       }
@@ -276,11 +294,18 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           {!user.isVendor && (
             <button 
               onClick={() => setShowVendorSubscription(true)}
-              className="mt-4 px-8 py-3 bg-orange-500 hover:bg-orange-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-orange-400 transition-all active:scale-95"
+              className="mt-4 px-8 py-3 bg-orange-500 hover:bg-orange-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-orange-400 transition-all active:scale-95"
             >
               Devenir Vendeur
             </button>
           )}
+          
+          <button 
+            onClick={() => setShowVendorCodeModal(true)}
+            className="mt-4 px-8 py-3 bg-purple-500 hover:bg-purple-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-purple-400 transition-all active:scale-95"
+          >
+            Code Vendeur
+          </button>
           
           {user.isVendor && (
             <button 
@@ -379,6 +404,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           </div>
         )}
       </section>
+
+      {/* Vendor Code Modal */}
+      {showVendorCodeModal && (
+        <VendorCodeModal 
+          user={user}
+          onClose={() => setShowVendorCodeModal(false)}
+          onAccessVendor={handleAccessVendor}
+        />
+      )}
 
       {/* Vendor Subscription Modal */}
       {showVendorSubscription && (

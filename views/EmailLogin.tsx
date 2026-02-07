@@ -75,7 +75,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         );
         
         if (result.success) {
-          setSuccess('Compte créé avec succès ! Un email de vérification a été envoyé. Veuillez vérifier votre email avant de vous connecter.');
+          setSuccess('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
           // Réinitialiser le formulaire
           setFormData({
             name: '',

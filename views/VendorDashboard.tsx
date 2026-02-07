@@ -11,6 +11,7 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
   const [vendorProducts, setVendorProducts] = useState<VendorProduct[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingProduct, setEditingProduct] = useState<VendorProduct | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
     localName: '',
@@ -22,6 +23,19 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
     care: { water: '1 fois/semaine', sun: 'Lumière indirecte', difficulty: 'Facile' as const },
     image: ''
   });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setImagePreview(result);
+        setFormData({...formData, image: result});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Charger les produits du vendeur depuis localStorage
   useEffect(() => {
@@ -46,7 +60,7 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
       scientificName: formData.scientificName,
       price: formData.price,
       category: formData.category,
-      image: formData.image || `https://images.unsplash.com/photo-${Math.random().toString(36).substr(2, 10)}?auto=format&fit=crop&q=80&w=400`,
+      image: formData.image || imagePreview || `https://images.unsplash.com/photo-${Math.random().toString(36).substr(2, 10)}?auto=format&fit=crop&q=80&w=400`,
       description: formData.description,
       care: formData.care,
       stock: formData.stock,
@@ -74,6 +88,7 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
       care: { water: '1 fois/semaine', sun: 'Lumière indirecte', difficulty: 'Facile' },
       image: ''
     });
+    setImagePreview('');
     setIsAdding(false);
     setEditingProduct(null);
   };
@@ -97,6 +112,7 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
       care: product.care,
       image: product.image
     });
+    setImagePreview(product.image);
     setIsAdding(true);
   };
 
@@ -313,6 +329,40 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
                     value={formData.description}
                     onChange={e => setFormData({...formData, description: e.target.value})}
                   ></textarea>
+                </div>
+
+                <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+                  <label className="text-[10px] uppercase font-black text-[#2D5A27]/40 mb-2 block">Photo du Produit</label>
+                  <div className="space-y-3">
+                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-4 text-center">
+                      {imagePreview ? (
+                        <div className="relative">
+                          <img src={imagePreview} className="w-full h-32 object-cover rounded-xl" />
+                          <button
+                            onClick={() => {
+                              setImagePreview('');
+                              setFormData({...formData, image: ''});
+                            }}
+                            className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs"
+                          >
+                            <i className="fa-solid fa-times"></i>
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <i className="fa-solid fa-camera text-3xl text-gray-300 mb-2 block"></i>
+                          <p className="text-sm text-gray-400">Cliquez pour ajouter une photo</p>
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">Formats acceptés : JPG, PNG, GIF (max 5MB)</p>
+                  </div>
                 </div>
 
                 <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">

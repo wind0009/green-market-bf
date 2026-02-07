@@ -11,6 +11,7 @@ import Login from './views/Login';
 import EmailLogin from './views/EmailLogin';
 import VendorDashboard from './views/VendorDashboard';
 import PremiumProducts from './views/PremiumProducts';
+import VendorProducts from './views/VendorProducts';
 import { Plant, CartItem, Order, User } from './types';
 import { PLANTS as INITIAL_PLANTS } from './constants';
 
@@ -298,6 +299,9 @@ const AppContent: React.FC = () => {
         } />
         <Route path="/premium-products" element={
           <PremiumProducts />
+        } />
+        <Route path="/vendor-products/:vendorId" element={
+          <VendorProducts vendorId={location.pathname.split('/vendor-products/')[1]} />
         } />
       </Routes>
     </Layout>
