@@ -38,7 +38,7 @@ const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ user, onClose, onAcce
       }
 
       if (foundVendor) {
-        // Sauvegarder l'accès au vendeur pour cet utilisateur
+        // Sauvegarder l'accès au vendeur POUR CET UTILISATEUR SPECIFIQUE
         const userVendors = JSON.parse(localStorage.getItem(`user_vendors_${user.id}`) || '[]');
         if (!userVendors.some((v: any) => v.vendorId === foundVendor.id)) {
           userVendors.push({

@@ -82,6 +82,20 @@ export class EmailAuthService {
     }
   }
 
+  // Supprimer un utilisateur de la base de données locale
+  async deleteUser(email: string): Promise<AuthResult> {
+    try {
+      // Supprimer de localStorage
+      const users = JSON.parse(localStorage.getItem('gm_auth_database') || '[]');
+      const updatedUsers = users.filter((u: User) => u.email !== email);
+      localStorage.setItem('gm_auth_database', JSON.stringify(updatedUsers));
+      
+      return { success: true, user: null };
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Erreur lors de la suppression.' };
+    }
+  }
+
   // Connexion avec email et mot de passe
   async signIn(email: string, password: string): Promise<AuthResult> {
     try {
@@ -155,18 +169,17 @@ export class EmailAuthService {
 
   // Déconnexion
   async signOut(): Promise<void> {
-    await firebaseSignOut(auth);
+    await signOut(auth);
   }
 
   // Vérifier si l'utilisateur est connecté
   getCurrentUser(): FirebaseUser | null {
     return auth.currentUser;
   }
-
-  // Observer les changements d'état d'authentification
-  onAuthStateChanged(callback: (user: FirebaseUser | null) => void) {
-    return auth.onAuthStateChanged(callback);
-  }
 }
+
+export const onAuthStateChanged = (callback: (user: FirebaseUser | null) => void) => {
+  return auth.onAuthStateChanged(callback);
+};
 
 export const emailAuthService = new EmailAuthService();
