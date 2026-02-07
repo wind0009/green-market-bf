@@ -294,16 +294,18 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           {!user.isVendor && (
             <button 
               onClick={() => setShowVendorSubscription(true)}
-              className="mt-4 px-8 py-3 bg-orange-500 hover:bg-orange-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-orange-400 transition-all active:scale-95"
+              className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl text-[9px] font-medium uppercase tracking-wider transition-all"
             >
+              <i className="fa-solid fa-store mr-2"></i>
               Devenir Vendeur
             </button>
           )}
           
           <button 
             onClick={() => setShowVendorCodeModal(true)}
-            className="mt-4 px-8 py-3 bg-purple-500 hover:bg-purple-600 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-purple-400 transition-all active:scale-95"
+            className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl text-[9px] font-medium uppercase tracking-wider transition-all"
           >
+            <i className="fa-solid fa-key mr-2"></i>
             Code Vendeur
           </button>
           

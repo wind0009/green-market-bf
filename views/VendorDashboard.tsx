@@ -119,7 +119,14 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
   const generateVendorCode = () => {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     onUpdateProfile({ vendorCode: code });
-    alert(`Code vendeur généré : ${code}\n\nPartagez ce code à vos clients premium !`);
+    
+    // Copier automatiquement dans le presse-papiers
+    navigator.clipboard.writeText(code).then(() => {
+      alert(`🎉 Code vendeur généré et copié !\n\nCode: ${code}\n\nPartagez ce code à vos clients premium !`);
+    }).catch(() => {
+      // Fallback si le clipboard ne fonctionne pas
+      alert(`🎉 Code vendeur généré : ${code}\n\nPartagez ce code à vos clients premium !`);
+    });
   };
 
   return (
@@ -225,12 +232,28 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
             <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 text-center">
               <p className="text-3xl font-mono font-bold text-green-600">{user.vendorCode || 'Non généré'}</p>
             </div>
-            <button 
-              onClick={generateVendorCode}
-              className="w-full mt-4 bg-green-500 text-white py-3 rounded-2xl font-bold hover:bg-green-600 transition-all"
-            >
-              Générer Nouveau Code
-            </button>
+            <div className="flex gap-2 mt-4">
+              <button 
+                onClick={generateVendorCode}
+                className="flex-1 bg-green-500 text-white py-3 rounded-2xl font-bold hover:bg-green-600 transition-all"
+              >
+                Générer Nouveau Code
+              </button>
+              {user.vendorCode && (
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(user.vendorCode!).then(() => {
+                      alert('✅ Code copié dans le presse-papiers !');
+                    }).catch(() => {
+                      alert('❌ Erreur lors de la copie');
+                    });
+                  }}
+                  className="bg-blue-500 text-white px-4 py-3 rounded-2xl font-bold hover:bg-blue-600 transition-all"
+                >
+                  <i className="fa-solid fa-copy"></i>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
