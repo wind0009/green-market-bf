@@ -1,8 +1,11 @@
 import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
   sendEmailVerification,
+  signOut,
+  updateProfile,
+  onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
 import { auth } from '../src/firebase';
@@ -43,6 +46,11 @@ export class EmailAuthService {
           return { success: false, error: 'Impossible d\'envoyer l\'email de vérification.' };
         }
       }
+
+      // Mettre à jour le profil Firebase avec le nom
+      await updateProfile(firebaseUser, {
+        displayName: name
+      });
 
       // Créer l'utilisateur pour notre application
       const appUser: User = {

@@ -1,6 +1,7 @@
 
-import React, { useState, useRef } from 'react';
-import { Order, Plant, Category } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { Order, Plant, Category, User } from '../types';
+import { userService } from '../services/userService';
 
 interface AdminProps {
   orders: Order[];
@@ -12,9 +13,11 @@ interface AdminProps {
 }
 
 const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAddPlant, onUpdatePlant, onDeletePlant }) => {
-  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'stats'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'inventory' | 'stats' | 'users'>('orders');
   const [isAdding, setIsAdding] = useState(false);
   const [editingPlant, setEditingPlant] = useState<Plant | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
   
   const [formData, setFormData] = useState<Partial<Plant>>({
     name: '',
@@ -28,6 +31,25 @@ const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAd
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [capturedImage, setCapturedImage] = useState<string>('');
+
+  // Charger les utilisateurs
+  useEffect(() => {
+    if (activeTab === 'users') {
+      loadUsers();
+    }
+  }, [activeTab]);
+
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const allUsers = await userService.getAllUsers();
+      setUsers(allUsers);
+    } catch (error) {
+      console.error('Erreur chargement utilisateurs:', error);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
 
   const handleImageCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -97,13 +119,13 @@ const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAd
       </div>
 
       <div className="flex bg-gray-100 p-1 rounded-2xl">
-        {['orders', 'inventory'].map((tab) => (
+        {['orders', 'inventory', 'users'].map((tab) => (
           <button 
             key={tab}
             onClick={() => setActiveTab(tab as any)}
             className={`flex-1 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all ${activeTab === tab ? 'bg-[#2D5A27] text-white shadow-lg' : 'text-gray-400'}`}
           >
-            {tab === 'orders' ? 'Commandes' : 'Inventaire'}
+            {tab === 'orders' ? 'Commandes' : tab === 'inventory' ? 'Inventaire' : 'Utilisateurs'}
           </button>
         ))}
       </div>
@@ -170,6 +192,65 @@ const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAd
                 </div>
               </div>
             ))
+          )}
+        </div>
+      ) : activeTab === 'users' ? (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <h2 className="font-bold text-[#2D5A27]">Base de données utilisateurs</h2>
+            <span className="text-[10px] font-bold bg-white px-2 py-1 rounded-lg border border-gray-100">{users.length} inscrits</span>
+          </div>
+          
+          {loadingUsers ? (
+            <div className="bg-white rounded-[32px] p-12 text-center border border-dashed border-gray-200">
+              <i className="fa-solid fa-spinner fa-spin text-4xl text-gray-300 mb-4 block"></i>
+              <p className="text-gray-400 text-sm">Chargement des utilisateurs...</p>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="bg-white rounded-[32px] p-12 text-center border border-dashed border-gray-200">
+              <i className="fa-solid fa-users text-4xl text-gray-100 mb-4 block"></i>
+              <p className="text-gray-400 text-sm">Aucun utilisateur inscrit.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {users.map((user) => (
+                <div key={user.id} className="bg-white rounded-[32px] p-5 shadow-sm border border-gray-100">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-[#2D5A27]/10 rounded-2xl flex items-center justify-center">
+                        <span className="text-lg font-bold text-[#2D5A27]">{user.name.charAt(0).toUpperCase()}</span>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-800">{user.name}</h3>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <p className="text-xs text-gray-400">+226 {user.phone}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {user.isAdmin && (
+                        <span className="bg-orange-100 text-orange-600 text-xs font-bold px-2 py-1 rounded-full">ADMIN</span>
+                      )}
+                      <span className="bg-green-100 text-green-600 text-xs font-bold px-2 py-1 rounded-full">
+                        {user.isProfileComplete ? 'Complet' : 'Incomplet'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {user.addresses && user.addresses.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-xs text-gray-400 font-bold mb-2">ADRESSES ({user.addresses.length})</p>
+                      <div className="space-y-1">
+                        {user.addresses.map((address, index) => (
+                          <div key={index} className="text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
+                            <span className="font-bold">{address.district}</span>, {address.city} - {address.landmark}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
       ) : (

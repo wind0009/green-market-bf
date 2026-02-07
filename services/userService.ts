@@ -31,6 +31,17 @@ export const userService = {
     } as User;
   },
 
+  // Récupérer tous les utilisateurs
+  getAllUsers: async (): Promise<User[]> => {
+    const usersRef = collection(db, USERS_COLLECTION);
+    const snapshot = await getDocs(usersRef);
+    
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as User));
+  },
+
   // Créer ou mettre à jour un utilisateur
   saveUser: async (user: User): Promise<void> => {
     const usersRef = collection(db, USERS_COLLECTION);
