@@ -66,13 +66,15 @@ const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAd
       return;
     }
 
+    console.log('🗑️ LANCEMENT DE LA SUPPRESSION DE LA BASE DE DONNÉES UTILISATEURS');
+    
     setIsDeleting(true);
     try {
       await userService.deleteAllUsers();
       setUsers([]);
-      alert('✅ Base de données utilisateurs supprimée avec succès !');
+      alert('✅ Base de données utilisateurs supprimée avec succès !\n\n📊 Consultez la console Firebase pour voir les logs de suppression.');
     } catch (error) {
-      console.error('Erreur suppression utilisateurs:', error);
+      console.error('❌ Erreur lors de la suppression des utilisateurs:', error);
       alert('❌ Erreur lors de la suppression des utilisateurs');
     } finally {
       setIsDeleting(false);

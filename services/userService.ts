@@ -60,8 +60,12 @@ export const userService = {
     const usersRef = collection(db, USERS_COLLECTION);
     const snapshot = await getDocs(usersRef);
     
+    console.log(`🗑️ SUPPRESSION BASE DE DONNÉES - ${snapshot.docs.length} utilisateurs vont être supprimés`);
+    
     // Supprimer chaque document utilisateur
     const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
     await Promise.all(deletePromises);
+    
+    console.log('✅ Base de données utilisateurs supprimée avec succès dans Firebase');
   }
 };
