@@ -1,5 +1,5 @@
 
-export type Category = 'Intérieur' | 'Jardin' | 'Ombre' | 'Soleil' | 'Arbre' | 'Potager' | 'Médicinale' | 'Fruitier';
+export type Category = 'Intérieur' | 'Jardin' | 'Ombre' | 'Soleil' | 'Arbre' | 'Potager' | 'Médicinale' | 'Fruitier' | 'Cactus' | 'Palmier' | 'Arbuste';
 
 export interface Plant {
   id: string;
@@ -13,7 +13,7 @@ export interface Plant {
   care: {
     water: string;
     sun: string;
-    difficulty: 'Facile' | 'Moyen' | 'Expert';
+    difficulty: 'Très facile' | 'Facile' | 'Moyen' | 'Expert';
   };
   stock: number;
   dateAdded: string;
