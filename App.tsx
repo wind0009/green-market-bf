@@ -31,14 +31,14 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const savedCart = localStorage.getItem('gm_cart');
     const savedOrders = localStorage.getItem('gm_orders');
-    const savedPlants = localStorage.getItem('gm_plants');
     const savedWishlist = localStorage.getItem('gm_wishlist');
     const savedUser = localStorage.getItem('gm_user');
     const savedDatabase = localStorage.getItem('gm_auth_database');
 
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedOrders) setOrders(JSON.parse(savedOrders));
-    if (savedPlants) setPlants(JSON.parse(savedPlants));
+    // Toujours charger les plantes depuis les constantes pour avoir les dernières mises à jour
+    setPlants(INITIAL_PLANTS);
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     if (savedUser) setUser(JSON.parse(savedUser));
     if (savedDatabase) setAuthDatabase(JSON.parse(savedDatabase));
