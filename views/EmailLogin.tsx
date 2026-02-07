@@ -162,20 +162,37 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
       }
     };
     
-    // Ajouter des écouteurs sur le logo
+    // Ajouter des écouteurs sur le logo avec tous les événements possibles
     const logoElement = document.querySelector('.admin-secret-trigger');
     if (logoElement) {
       console.log('✅ Logo trouvé, ajout des écouteurs');
+      
+      // Événements desktop
       logoElement.addEventListener('click', handleLogoClick);
-      logoElement.addEventListener('touchend', handleLogoClick); // Support tactile plus fiable
+      logoElement.addEventListener('mousedown', handleLogoClick);
+      
+      // Événements mobiles - plusieurs pour compatibilité maximale
+      logoElement.addEventListener('touchend', handleLogoClick);
+      logoElement.addEventListener('touchstart', handleLogoClick);
+      logoElement.addEventListener('tap', handleLogoClick);
+      
+      // Événements additionnels pour certains mobiles
+      logoElement.addEventListener('pointerup', handleLogoClick);
+      logoElement.addEventListener('pointerdown', handleLogoClick);
     } else {
       console.log('❌ Logo non trouvé');
     }
     
     return () => {
       if (logoElement) {
+        // Nettoyer tous les écouteurs
         logoElement.removeEventListener('click', handleLogoClick);
+        logoElement.removeEventListener('mousedown', handleLogoClick);
         logoElement.removeEventListener('touchend', handleLogoClick);
+        logoElement.removeEventListener('touchstart', handleLogoClick);
+        logoElement.removeEventListener('tap', handleLogoClick);
+        logoElement.removeEventListener('pointerup', handleLogoClick);
+        logoElement.removeEventListener('pointerdown', handleLogoClick);
       }
     };
   }, []);
