@@ -147,12 +147,24 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   // Détecter 5 clics sur le logo pour accès admin
   useEffect(() => {
     let clickCount = 0;
+    let lastClickTime = 0;
+    const CLICK_TIMEOUT = 1000; // 1 seconde entre les clics max
     
-    const handleLogoClick = (e: Event) => {
+    const handleLogoInteraction = (e: Event) => {
       e.preventDefault();
+      e.stopPropagation();
+      
+      const now = Date.now();
+      
+      // Éviter les double-clics rapides sur mobile
+      if (now - lastClickTime < 100) {
+        return;
+      }
+      
+      lastClickTime = now;
       clickCount++;
       
-      console.log(`🔵 Clic ${clickCount}/5 sur le logo`);
+      console.log(`🔵 Clic ${clickCount}/5 sur le logo - Type: ${e.type}`);
       
       // Si 5 clics atteints
       if (clickCount === 5) {
@@ -160,25 +172,41 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         setShowAdminPage(true);
         clickCount = 0;
       }
+      
+      // Reset après timeout
+      setTimeout(() => {
+        if (clickCount > 0) {
+          console.log('🔴 Reset timeout - clics annulés');
+          clickCount = 0;
+        }
+      }, CLICK_TIMEOUT);
     };
     
-    // Ajouter des écouteurs sur le logo avec tous les événements possibles
+    // Détecter si on est sur mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log(`📱 Plateforme détectée: ${isMobile ? 'Mobile' : 'Desktop'}`);
+    
+    // Ajouter des écouteurs sur le logo avec stratégie adaptée
     const logoElement = document.querySelector('.admin-secret-trigger');
     if (logoElement) {
       console.log('✅ Logo trouvé, ajout des écouteurs');
       
-      // Événements desktop
-      logoElement.addEventListener('click', handleLogoClick);
-      logoElement.addEventListener('mousedown', handleLogoClick);
-      
-      // Événements mobiles - plusieurs pour compatibilité maximale
-      logoElement.addEventListener('touchend', handleLogoClick);
-      logoElement.addEventListener('touchstart', handleLogoClick);
-      logoElement.addEventListener('tap', handleLogoClick);
-      
-      // Événements additionnels pour certains mobiles
-      logoElement.addEventListener('pointerup', handleLogoClick);
-      logoElement.addEventListener('pointerdown', handleLogoClick);
+      if (isMobile) {
+        // Stratégie mobile : événements tactiles uniquement
+        logoElement.addEventListener('touchstart', handleLogoInteraction, { passive: false });
+        logoElement.addEventListener('touchend', handleLogoInteraction, { passive: false });
+        
+        // Ajouter support pour les mobiles spécifiques
+        logoElement.addEventListener('pointerdown', handleLogoInteraction, { passive: false });
+        
+        console.log('📱 Écouteurs mobiles ajoutés');
+      } else {
+        // Stratégie desktop : événements souris
+        logoElement.addEventListener('click', handleLogoInteraction);
+        logoElement.addEventListener('mousedown', handleLogoInteraction);
+        
+        console.log('🖥️ Écouteurs desktop ajoutés');
+      }
     } else {
       console.log('❌ Logo non trouvé');
     }
@@ -186,13 +214,11 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     return () => {
       if (logoElement) {
         // Nettoyer tous les écouteurs
-        logoElement.removeEventListener('click', handleLogoClick);
-        logoElement.removeEventListener('mousedown', handleLogoClick);
-        logoElement.removeEventListener('touchend', handleLogoClick);
-        logoElement.removeEventListener('touchstart', handleLogoClick);
-        logoElement.removeEventListener('tap', handleLogoClick);
-        logoElement.removeEventListener('pointerup', handleLogoClick);
-        logoElement.removeEventListener('pointerdown', handleLogoClick);
+        logoElement.removeEventListener('touchstart', handleLogoInteraction);
+        logoElement.removeEventListener('touchend', handleLogoInteraction);
+        logoElement.removeEventListener('pointerdown', handleLogoInteraction);
+        logoElement.removeEventListener('click', handleLogoInteraction);
+        logoElement.removeEventListener('mousedown', handleLogoInteraction);
       }
     };
   }, []);
