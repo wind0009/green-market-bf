@@ -53,5 +53,15 @@ export const userService = {
   updateUser: async (userId: string, userData: Partial<User>): Promise<void> => {
     const userRef = doc(db, USERS_COLLECTION, userId);
     await updateDoc(userRef, userData);
+  },
+
+  // Supprimer tous les utilisateurs
+  deleteAllUsers: async (): Promise<void> => {
+    const usersRef = collection(db, USERS_COLLECTION);
+    const snapshot = await getDocs(usersRef);
+    
+    // Supprimer chaque document utilisateur
+    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(deletePromises);
   }
 };

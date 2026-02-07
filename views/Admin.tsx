@@ -1,5 +1,14 @@
-
 import React, { useState, useRef, useEffect } from 'react';
+import { 
+  collection, 
+  doc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where 
+} from 'firebase/firestore';
 import { Order, Plant, Category, User } from '../types';
 import { userService } from '../services/userService';
 
@@ -18,6 +27,7 @@ const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAd
   const [editingPlant, setEditingPlant] = useState<Plant | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const [formData, setFormData] = useState<Partial<Plant>>({
     name: '',
@@ -48,6 +58,24 @@ const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAd
       console.error('Erreur chargement utilisateurs:', error);
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  const deleteAllUsers = async () => {
+    if (!window.confirm('⚠️ ATTENTION !\n\nCette action va SUPPRIMER DÉFINITIVEMENT tous les utilisateurs inscrits.\n\nCette action est IRRÉVERSIBLE !\n\nÊtes-vous absolument sûr ?')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await userService.deleteAllUsers();
+      setUsers([]);
+      alert('✅ Base de données utilisateurs supprimée avec succès !');
+    } catch (error) {
+      console.error('Erreur suppression utilisateurs:', error);
+      alert('❌ Erreur lors de la suppression des utilisateurs');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -198,7 +226,26 @@ const Admin: React.FC<AdminProps> = ({ orders, plants, onUpdateOrderStatus, onAd
         <div className="space-y-4">
           <div className="flex justify-between items-center px-1">
             <h2 className="font-bold text-[#2D5A27]">Base de données utilisateurs</h2>
-            <span className="text-[10px] font-bold bg-white px-2 py-1 rounded-lg border border-gray-100">{users.length} inscrits</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold bg-white px-2 py-1 rounded-lg border border-gray-100">{users.length} inscrits</span>
+              <button
+                onClick={deleteAllUsers}
+                disabled={isDeleting || users.length === 0}
+                className="bg-red-500 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {isDeleting ? (
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    <span>Suppression...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-trash-can"></i>
+                    <span>Vider la base</span>
+                  </div>
+                )}
+              </button>
+            </div>
           </div>
           
           {loadingUsers ? (
