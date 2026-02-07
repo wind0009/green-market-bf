@@ -9,6 +9,8 @@ import Admin from './views/Admin';
 import Profile from './views/Profile';
 import Login from './views/Login';
 import EmailLogin from './views/EmailLogin';
+import VendorDashboard from './views/VendorDashboard';
+import PremiumProducts from './views/PremiumProducts';
 import { Plant, CartItem, Order, User } from './types';
 import { PLANTS as INITIAL_PLANTS } from './constants';
 
@@ -114,6 +116,7 @@ const AppContent: React.FC = () => {
         email: 'admin@greenmarket.bf',
         phone: 'Admin',
         isAdmin: true,
+        isProfileComplete: true,
         addresses: []
       };
       setUser(adminUser);
@@ -284,6 +287,17 @@ const AppContent: React.FC = () => {
               onDeletePlant={deletePlant}
             />
           ) : <Navigate to="/" />
+        } />
+        <Route path="/vendor-dashboard" element={
+          user.isVendor ? (
+            <VendorDashboard 
+              user={user}
+              onUpdateProfile={handleUpdateProfile}
+            />
+          ) : <Navigate to="/" />
+        } />
+        <Route path="/premium-products" element={
+          <PremiumProducts />
         } />
       </Routes>
     </Layout>

@@ -48,15 +48,29 @@ export interface User {
   id: string;
   phone: string;
   email: string;
-  password?: string;
   name: string;
-  isAdmin?: boolean;
-  isProfileComplete?: boolean;
+  isAdmin: boolean;
+  isProfileComplete: boolean;
+  isVendor?: boolean;
+  vendorStatus?: 'pending' | 'active' | 'expired';
+  vendorSubscription?: {
+    startDate: string;
+    endDate: string;
+    amount: number;
+    status: 'active' | 'expired' | 'pending';
+  };
+  vendorCode?: string;
   addresses: {
     district: string;
     city: string;
     landmark: string;
   }[];
+}
+
+export interface VendorProduct extends Plant {
+  vendorId: string;
+  vendorName: string;
+  isPremium: true;
 }
 
 export interface District {

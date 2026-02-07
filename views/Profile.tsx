@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
-import { User, Order, CartItem } from '../types';
+import { Order, User } from '../types';
+import VendorSubscription from './VendorSubscription';
 import { firebaseAuthService } from '../services/firebaseAuthService';
 
 interface ProfileProps {
@@ -31,6 +31,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  
+  // Vendor states
+  const [showVendorSubscription, setShowVendorSubscription] = useState(false);
 
   const handleLogoClick = () => {
     const newCount = logoTaps + 1;
@@ -269,6 +272,24 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           >
             Déconnexion
           </button>
+          
+          {!user.isVendor && (
+            <button 
+              onClick={() => setShowVendorSubscription(true)}
+              className="mt-4 px-8 py-3 bg-orange-500 hover:bg-orange-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-orange-400 transition-all active:scale-95"
+            >
+              Devenir Vendeur
+            </button>
+          )}
+          
+          {user.isVendor && (
+            <button 
+              onClick={() => window.location.hash = '#/vendor-dashboard'}
+              className="mt-4 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-green-500 transition-all active:scale-95"
+            >
+              Compte Vendeur
+            </button>
+          )}
         </div>
       </div>
 
@@ -358,6 +379,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           </div>
         )}
       </section>
+
+      {/* Vendor Subscription Modal */}
+      {showVendorSubscription && (
+        <VendorSubscription 
+          user={user}
+          onUpdateProfile={onUpdateProfile}
+          onClose={() => setShowVendorSubscription(false)}
+        />
+      )}
     </div>
   );
 };
