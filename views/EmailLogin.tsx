@@ -18,7 +18,6 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const [showMobileAdminButton, setShowMobileAdminButton] = useState(false);
   const [isHoldingLogo, setIsHoldingLogo] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
-  const [showDeleteDatabase, setShowDeleteDatabase] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -32,23 +31,6 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     secret: '',
     adminPassword: ''
   });
-
-  const handleDeleteDatabase = async () => {
-    if (!secretData.adminPassword || secretData.adminPassword !== '1234') {
-      setError('Mot de passe admin incorrect');
-      return;
-    }
-
-    try {
-      // Supprimer tous les utilisateurs de localStorage
-      localStorage.removeItem('gm_auth_database');
-      setSuccess('Base de données supprimée avec succès !');
-      setShowDeleteDatabase(false);
-      setSecretData({ secret: '', adminPassword: '' });
-    } catch (err: any) {
-      setError('Erreur lors de la suppression');
-    }
-  };
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
@@ -452,15 +434,6 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
             </button>
           )}
 
-          {/* Bouton de suppression de base de données */}
-          <button
-            onClick={() => setShowDeleteDatabase(true)}
-            className="fixed bottom-4 left-4 bg-red-500 text-white p-3 rounded-full shadow-lg z-50 hover:bg-red-600 transition-colors"
-            title="Supprimer base de données"
-          >
-            <i className="fa-solid fa-database"></i>
-          </button>
-
           {/* Footer */}
           <div className="mt-8 pt-8 border-t border-gray-100 text-center">
             <p className="text-sm text-gray-500">
@@ -495,63 +468,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         </div>
       </div>
 
-      {/* Modal de suppression de base de données */}
-      {showDeleteDatabase && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-[40px] p-8 max-w-md w-full">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-red-600">Supprimer Base de Données</h2>
-              <button onClick={() => setShowDeleteDatabase(false)} className="text-gray-400 hover:text-gray-600">
-                <i className="fa-solid fa-times text-xl"></i>
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-                <h3 className="font-bold text-red-600 mb-2">⚠️ Attention</h3>
-                <p className="text-sm text-gray-600">
-                  Cette action supprimera définitivement tous les comptes utilisateurs enregistrés.
-                  Cette action est irréversible.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Mot de passe Admin</label>
-                <input
-                  type="password"
-                  placeholder="Entrez le mot de passe admin"
-                  className="w-full px-4 py-3 border-2 border-red-200 rounded-2xl focus:border-red-500 focus:outline-none"
-                  value={secretData.adminPassword}
-                  onChange={(e) => setSecretData({...secretData, adminPassword: e.target.value})}
-                />
-              </div>
-
-              <button
-                onClick={handleDeleteDatabase}
-                disabled={loading}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white py-4 rounded-2xl font-bold transition-all active:scale-95 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <i className="fa-solid fa-spinner fa-spin"></i>
-                    <span>Suppression...</span>
-                  </div>
-                ) : (
-                  'Supprimer la base de données'
-                )}
-              </button>
-
-              <button
-                onClick={() => setShowDeleteDatabase(false)}
-                className="w-full text-gray-500 py-2 text-sm"
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
   );
 };
 

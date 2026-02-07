@@ -10,6 +10,9 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
   const [accessCode, setAccessCode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [vendorName, setVendorName] = useState<string>('');
+  const [vendorId, setVendorId] = useState<string>('');
 
   // Charger tous les produits vendeurs
   useEffect(() => {
@@ -42,26 +45,49 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
   const verifyCode = (code: string) => {
     setLoading(true);
     
-    // Simuler la vérification du code
-    setTimeout(() => {
-      const isValidVendor = allVendorProducts.some(product => {
-        // Récupérer le vendeur correspondant à ce produit
-        const vendorId = product.vendorId;
-        const vendorData = localStorage.getItem(`gm_user_${vendorId}`);
-        if (vendorData) {
-          const vendor = JSON.parse(vendorData);
-          return vendor.vendorCode === code && vendor.vendorStatus === 'active';
+    // Chercher directement le vendeur correspondant au code
+    let foundVendor = null;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('gm_user_')) {
+        const userData = JSON.parse(localStorage.getItem(key) || '{}');
+        if (userData.isVendor && userData.vendorStatus === 'active' && userData.vendorCode === code.toUpperCase()) {
+          foundVendor = userData;
+          break;
         }
-        return false;
-      });
-
-      if (isValidVendor) {
-        setIsAuthenticated(true);
-      } else {
-        alert('❌ Code vendeur invalide ou expiré');
       }
+    }
+
+    if (foundVendor) {
+      setIsAuthenticated(true);
+      setVendorName(foundVendor.name);
+      setVendorId(foundVendor.id);
+      
+      // Sauvegarder l'accès pour cet utilisateur
+      const currentUserId = localStorage.getItem('gm_current_user_id');
+      if (currentUserId) {
+        const userVendors = JSON.parse(localStorage.getItem(`user_vendors_${currentUserId}`) || '[]');
+        if (!userVendors.some((v: any) => v.vendorId === foundVendor.id)) {
+          userVendors.push({
+            vendorId: foundVendor.id,
+            vendorName: foundVendor.name,
+            vendorCode: code.toUpperCase(),
+            accessDate: new Date().toISOString()
+          });
+          localStorage.setItem(`user_vendors_${currentUserId}`, JSON.stringify(userVendors));
+        }
+      }
+      
+      // Charger les produits de ce vendeur
+      const vendorProducts = JSON.parse(localStorage.getItem(`vendor_products_${foundVendor.id}`) || '[]');
+      setAllVendorProducts(vendorProducts);
+      
       setLoading(false);
-    }, 1000);
+      alert(`🎉 Accès autorisé ! Bienvenue chez ${foundVendor.name}`);
+    } else {
+      setLoading(false);
+      setError('Code vendeur invalide ou expiré');
+    }
   };
 
   const handleAccessSubmit = (e: React.FormEvent) => {
