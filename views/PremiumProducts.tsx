@@ -34,7 +34,7 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
 
   // Vérifier si un code est fourni dans l'URL
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
+    const urlParams = new URLSearchParams(location.search);
     const code = urlParams.get('code') || vendorCode;
     if (code) {
       setAccessCode(code.toUpperCase());
@@ -165,7 +165,7 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
           <h1 className="text-2xl font-bold text-purple-600">Produits Premium</h1>
           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black">Collection Exclusives • Vendeurs Partenaires</p>
         </div>
-        <button onClick={() => window.location.hash = '#/'} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-400 shadow-sm border border-gray-100">
+        <button onClick={() => navigate('/')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-400 shadow-sm border border-gray-100">
           <i className="fa-solid fa-house"></i>
         </button>
       </div>

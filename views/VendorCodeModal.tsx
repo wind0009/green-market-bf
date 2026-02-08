@@ -28,7 +28,7 @@ const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ onClose }) => {
 
       if (foundVendor) {
         // Rediriger directement vers la page du vendeur
-        window.location.hash = `#/vendor-products/${foundVendor.id}`;
+        navigate(`/vendor-products/${foundVendor.id}`);
         onClose();
         alert(`🎉 Accès autorisé ! Bienvenue chez ${foundVendor.name}`);
       } else {
