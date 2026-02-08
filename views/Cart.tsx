@@ -61,8 +61,8 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
         </div>
         <h2 className="text-xl font-bold mb-2">Votre panier est vide</h2>
         <p className="text-gray-500 mb-8">Découvrez nos magnifiques plantes et commencez votre jardin urbain.</p>
-        <button 
-          onClick={() => window.location.hash = '#/'}
+        <button
+          onClick={() => navigate('/')}
           className="bg-[#2D5A27] text-white px-8 py-3 rounded-xl font-bold"
         >
           Voir le catalogue
@@ -81,8 +81,8 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
         <p className="text-gray-500 mb-8">
           Bark-wende ! Votre commande a été enregistrée. Nous vous contacterons sur le {formData.phone} pour confirmer la livraison.
         </p>
-        <button 
-          onClick={() => window.location.hash = '#/orders'}
+        <button
+          onClick={() => navigate('/profile')}
           className="bg-[#2D5A27] text-white px-8 py-3 rounded-xl font-bold w-full"
         >
           Suivre ma commande
@@ -146,13 +146,13 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
         <div className="space-y-6 pb-20">
           {/* Toggle Method */}
           <div className="flex bg-gray-100 p-1 rounded-2xl">
-            <button 
+            <button
               onClick={() => setMethod('Livraison')}
               className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${method === 'Livraison' ? 'bg-[#2D5A27] text-white shadow-md' : 'text-gray-500'}`}
             >
               Livraison
             </button>
-            <button 
+            <button
               onClick={() => setMethod('Retrait')}
               className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${method === 'Retrait' ? 'bg-[#2D5A27] text-white shadow-md' : 'text-gray-500'}`}
             >
@@ -163,22 +163,22 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">Nom Complet</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full bg-white border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#2D5A27]"
                 placeholder="Ex: Alassane Sawadogo"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div>
               <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">Téléphone (WhatsApp)</label>
-              <input 
-                type="tel" 
+              <input
+                type="tel"
                 className="w-full bg-white border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#2D5A27]"
                 placeholder="Ex: +226 70 00 00 00"
                 value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
             </div>
 
@@ -186,7 +186,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
               <>
                 <div>
                   <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">Quartier</label>
-                  <select 
+                  <select
                     className="w-full bg-white border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#2D5A27]"
                     onChange={(e) => setSelectedDistrict(DISTRICTS.find(d => d.name === e.target.value) || DISTRICTS[0])}
                   >
@@ -197,22 +197,22 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">Précisions (Monument, Pharmacie...)</label>
-                  <textarea 
+                  <textarea
                     className="w-full bg-white border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#2D5A27] h-20"
                     placeholder="Ex: Face à la pharmacie des Écoles, porte bleue."
                     value={formData.landmark}
-                    onChange={(e) => setFormData({...formData, landmark: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
                   ></textarea>
                 </div>
               </>
             ) : (
               <div>
                 <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">Heure de passage</label>
-                <input 
-                  type="time" 
+                <input
+                  type="time"
                   className="w-full bg-white border border-gray-200 rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#2D5A27]"
                   value={formData.pickupTime}
-                  onChange={(e) => setFormData({...formData, pickupTime: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
                 />
               </div>
             )}
@@ -220,15 +220,15 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
             <div>
               <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">Mode de Paiement</label>
               <div className="space-y-2">
-                <button 
-                  onClick={() => setFormData({...formData, payment: 'Mobile Money'})}
+                <button
+                  onClick={() => setFormData({ ...formData, payment: 'Mobile Money' })}
                   className={`w-full p-4 rounded-xl border flex items-center gap-3 ${formData.payment === 'Mobile Money' ? 'border-[#2D5A27] bg-[#2D5A27]/5' : 'border-gray-200'}`}
                 >
                   <i className="fa-solid fa-mobile-screen-button text-orange-500"></i>
                   <span className="font-bold text-sm">Orange / Moov Money</span>
                 </button>
-                <button 
-                  onClick={() => setFormData({...formData, payment: 'Paiement à la livraison'})}
+                <button
+                  onClick={() => setFormData({ ...formData, payment: 'Paiement à la livraison' })}
                   className={`w-full p-4 rounded-xl border flex items-center gap-3 ${formData.payment === 'Paiement à la livraison' ? 'border-[#2D5A27] bg-[#2D5A27]/5' : 'border-gray-200'}`}
                 >
                   <i className="fa-solid fa-hand-holding-dollar text-[#2D5A27]"></i>

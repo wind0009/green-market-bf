@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../types';
 import { userService } from '../services/userService';
+import { useNavigate } from 'react-router-dom';
 
 interface VendorCodeModalProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface VendorCodeModalProps {
 }
 
 const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ onClose }) => {
+  const navigate = useNavigate();
   const [vendorCode, setVendorCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

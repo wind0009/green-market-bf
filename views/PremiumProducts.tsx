@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { VendorProduct, User, Plant } from '../types';
 import { plantService } from '../services/plantService';
 import { userService } from '../services/userService';
@@ -11,6 +12,8 @@ interface PremiumProductsProps {
 }
 
 const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [allVendorProducts, setAllVendorProducts] = useState<Plant[]>([]);
   const [accessCode, setAccessCode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { VendorProduct, User, Plant } from '../types';
 import { plantService } from '../services/plantService';
 import { userService } from '../services/userService';
+import { useNavigate } from 'react-router-dom';
 
 // Helper to convert Plant to VendorProduct or similar display
 // We can use Plant type directly since VendorProduct extends it
@@ -12,6 +13,7 @@ interface VendorProductsProps {
 }
 
 const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
+  const navigate = useNavigate();
   const [vendorProducts, setVendorProducts] = useState<Plant[]>([]);
   const [vendorInfo, setVendorInfo] = useState<User | null>(null);
   const [cart, setCart] = useState<any[]>([]);
