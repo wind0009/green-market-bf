@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, getDocs, updateDoc, doc, deleteDoc, writeBatch, query, where } from 'firebase/firestore';
 import { db } from '../src/firebase';
 import { Plant } from '../types';
 
@@ -46,18 +46,24 @@ export class PlantService {
         }
     }
 
+    async getPlantsByVendor(vendorId: string): Promise<Plant[]> {
+        try {
+            const q = query(collection(db, this.plantsCollection), where('vendorId', '==', vendorId));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Plant));
+        } catch (error) {
+            console.error('Error fetching vendor plants:', error);
+            return [];
+        }
+    }
+
     async seedPlants(plants: Plant[]): Promise<void> {
         try {
             const batch = writeBatch(db);
             const collectionRef = collection(db, this.plantsCollection);
 
-            // Limited to 500 writes per batch, our list is small (25) so it's safe
             for (const plant of plants) {
-                // Create a new doc reference for each plant
-                // We let Firestore generate the ID, or we could use plant.id if we wanted to enforce it
-                // Using addDoc behavior via batch:
                 const docRef = doc(collectionRef);
-                // We exclude the 'id' field from the data we send, as it's the doc ID
                 const { id, ...plantData } = plant;
                 batch.set(docRef, plantData);
             }

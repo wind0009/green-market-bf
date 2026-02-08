@@ -28,8 +28,7 @@ const AppContent: React.FC = () => {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
 
-  // Base de données simulée des utilisateurs enregistrés
-  const [authDatabase, setAuthDatabase] = useState<User[]>([]);
+  // authDatabase removed - using Firestore
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
   const [authMethod, setAuthMethod] = useState<'sms' | 'email'>('email');
 
@@ -39,7 +38,6 @@ const AppContent: React.FC = () => {
     const savedOrders = localStorage.getItem('gm_orders');
     const savedWishlist = localStorage.getItem('gm_wishlist');
     const savedUser = localStorage.getItem('gm_user');
-    const savedDatabase = localStorage.getItem('gm_auth_database');
 
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedOrders) setOrders(JSON.parse(savedOrders));
@@ -65,7 +63,24 @@ const AppContent: React.FC = () => {
 
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedDatabase) setAuthDatabase(JSON.parse(savedDatabase));
+
+    // Listen to Firebase Auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Fetch full user profile from Firestore
+        const userProfile = await userService.getUserById(firebaseUser.uid);
+        if (userProfile) {
+          setUser(userProfile);
+          localStorage.setItem('gm_user', JSON.stringify(userProfile));
+        }
+      } else {
+        // Do not automatically clear user here if we want to support offline/local state persistence 
+        // until explicit logout, but typically auth state change covers it.
+        // For now, let's trust explicit logout or token expiration.
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -73,13 +88,12 @@ const AppContent: React.FC = () => {
     localStorage.setItem('gm_orders', JSON.stringify(orders));
     localStorage.setItem('gm_plants', JSON.stringify(plants));
     localStorage.setItem('gm_wishlist', JSON.stringify(wishlist));
-    localStorage.setItem('gm_auth_database', JSON.stringify(authDatabase));
     if (user) {
       localStorage.setItem('gm_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('gm_user');
     }
-  }, [cart, orders, plants, wishlist, user, authDatabase]);
+  }, [cart, orders, plants, wishlist, user]);
 
   const addToCart = (plant: Plant) => {
     setCart(prev => {
@@ -119,57 +133,35 @@ const AppContent: React.FC = () => {
     setWishlist(prev => prev.includes(id) ? prev.filter(wid => wid !== id) : [...prev, id]);
   };
 
+  // Legacy handles kept empty or redirecting to new auth flow if needed
   const handleSignup = (userData: User) => {
-    // Vérifier si l'utilisateur existe déjà
-    const exists = authDatabase.find(u => u.email === userData.email || u.phone === userData.phone);
-    if (exists) {
-      throw new Error("Un compte existe déjà avec cet email ou ce numéro.");
-    }
-    setAuthDatabase([...authDatabase, userData]);
-    setUser(userData);
-    navigate('/');
+    // Managed by EmailLogin component now
+    console.log("Signup handled by service");
   };
 
   const handleLogin = (identifier: string, password?: string, isSpecialAdmin: boolean = false) => {
-    if (isSpecialAdmin) {
-      const adminUser: User = {
-        id: 'admin_master',
-        name: 'Administrateur',
-        email: 'admin@greenmarket.bf',
-        phone: 'Admin',
-        isAdmin: true,
-        isProfileComplete: true,
-        addresses: []
-      };
-      setUser(adminUser);
-      navigate('/admin');
-      return;
-    }
-
-    const foundUser = authDatabase.find(u =>
-      (u.email === identifier || u.phone === identifier) && u.password === password
-    );
-
-    if (foundUser) {
-      setUser(foundUser);
-      navigate('/');
-    } else {
-      throw new Error("Identifiants incorrects.");
-    }
+    // Legacy support
+    console.log("Login handled by service");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await emailAuthService.signOut();
     setUser(null);
     setSelectedPlant(null);
     localStorage.removeItem('gm_user');
     navigate('/');
   };
 
-  const handleUpdateProfile = (userData: Partial<User>) => {
+  const handleUpdateProfile = async (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
-      setAuthDatabase(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+      // Persist to Firestore
+      try {
+        await userService.updateUser(user.id, userData);
+      } catch (error) {
+        console.error("Failed to update profile remote", error);
+      }
     }
   };
 

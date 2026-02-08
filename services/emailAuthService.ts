@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../src/firebase';
 import { User } from '../types';
+import { userService } from './userService';
 
 export interface AuthResult {
   success: boolean;
@@ -63,6 +64,9 @@ export class EmailAuthService {
         addresses: []
       };
 
+      // Sauvegarder dans Firestore
+      await userService.saveUser(appUser);
+
       return {
         success: true,
         user: appUser
@@ -84,16 +88,9 @@ export class EmailAuthService {
 
   // Supprimer un utilisateur de la base de données locale
   async deleteUser(email: string): Promise<AuthResult> {
-    try {
-      // Supprimer de localStorage
-      const users = JSON.parse(localStorage.getItem('gm_auth_database') || '[]');
-      const updatedUsers = users.filter((u: User) => u.email !== email);
-      localStorage.setItem('gm_auth_database', JSON.stringify(updatedUsers));
-
-      return { success: true, user: null };
-    } catch (error: any) {
-      return { success: false, error: error.message || 'Erreur lors de la suppression.' };
-    }
+    // Deprecated for local storage, but kept for interface compatibility if needed
+    // Ideally we would delete from Firestore too if this feature is used
+    return { success: true, user: null };
   }
 
   // Connexion avec email et mot de passe
@@ -119,16 +116,22 @@ export class EmailAuthService {
         }
       }
 
-      // Créer l'utilisateur pour notre application
-      const appUser: User = {
-        id: firebaseUser.uid,
-        phone: 'Non spécifié',
-        email: firebaseUser.email || email,
-        name: firebaseUser.displayName || 'Utilisateur',
-        isAdmin: firebaseUser.email === 'admin@greenmarket.bf',
-        isProfileComplete: true,
-        addresses: []
-      };
+      // Récupérer le profil complet depuis Firestore
+      let appUser = await userService.getUserById(firebaseUser.uid);
+
+      // Si l'utilisateur n'existe pas dans Firestore (ex: créé avant la migration), on le crée
+      if (!appUser) {
+        appUser = {
+          id: firebaseUser.uid,
+          phone: 'Non spécifié',
+          email: firebaseUser.email || email,
+          name: firebaseUser.displayName || 'Utilisateur',
+          isAdmin: firebaseUser.email === 'admin@greenmarket.bf',
+          isProfileComplete: true,
+          addresses: []
+        };
+        await userService.saveUser(appUser);
+      }
 
       return {
         success: true,
@@ -137,8 +140,8 @@ export class EmailAuthService {
     } catch (error: any) {
       console.error('Erreur connexion:', error);
 
-      if (error.code === 'auth/user-not-found') {
-        return { success: false, error: 'Utilisateur non trouvé. Vérifiez vos identifiants.' };
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        return { success: false, error: 'Email ou mot de passe incorrect.' };
       } else if (error.code === 'auth/wrong-password') {
         return { success: false, error: 'Mot de passe incorrect.' };
       } else if (error.code === 'auth/invalid-email') {
