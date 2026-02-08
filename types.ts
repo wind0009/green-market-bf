@@ -17,6 +17,8 @@ export interface Plant {
   };
   stock: number;
   dateAdded: string;
+  vendorId?: string;
+  vendorName?: string;
 }
 
 export interface CartItem extends Plant {
