@@ -1,30 +1,33 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom';
+import EmailLogin from './views/EmailLogin';
+import Login from './views/Login';
+import Profile from './views/Profile';
+import Cart from './views/Cart';
+import VendorDashboard from './views/VendorDashboard';
+import VendorProducts from './views/VendorProducts';
+import PremiumProducts from './views/PremiumProducts';
+import VendorCodeModal from './views/VendorCodeModal';
 import Layout from './components/Layout';
 import Catalog from './views/Catalog';
 import ProductDetails from './views/ProductDetails';
-import Cart from './views/Cart';
-import Admin from './views/Admin';
-import Profile from './views/Profile';
-import Login from './views/Login';
-import EmailLogin from './views/EmailLogin';
-import VendorDashboard from './views/VendorDashboard';
-import PremiumProducts from './views/PremiumProducts';
-import VendorProducts from './views/VendorProducts';
-import { Plant, CartItem, Order, User } from './types';
-import { PLANTS as INITIAL_PLANTS } from './constants';
+import { User, Order, Plant, CartItem } from './types';
+import { PLANTS } from './constants';
+import { emailAuthService } from './services/emailAuthService';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './src/firebase';
+import { orderService } from './services/orderService';
+import { plantService } from './services/plantService';
+import { userService } from './services/userService';
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  const [plants, setPlants] = useState<Plant[]>(INITIAL_PLANTS);
+  const [plants, setPlants] = useState<Plant[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  
+
   // Base de données simulée des utilisateurs enregistrés
   const [authDatabase, setAuthDatabase] = useState<User[]>([]);
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
@@ -40,8 +43,26 @@ const AppContent: React.FC = () => {
 
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedOrders) setOrders(JSON.parse(savedOrders));
-    // Toujours charger les plantes depuis les constantes pour avoir les dernières mises à jour
-    setPlants(INITIAL_PLANTS);
+
+    // Charger les plantes depuis Firebase
+    const loadPlants = async () => {
+      try {
+        const dbPlants = await plantService.getAllPlants();
+        if (dbPlants.length === 0) {
+          console.log('Seeding database...');
+          await plantService.seedPlants(PLANTS);
+          setPlants(PLANTS);
+        } else {
+          setPlants(dbPlants);
+        }
+      } catch (error) {
+        console.error("Failed to load plants", error);
+        // Fallback to static data if offline or error
+        setPlants(PLANTS);
+      }
+    };
+    loadPlants();
+
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     if (savedUser) setUser(JSON.parse(savedUser));
     if (savedDatabase) setAuthDatabase(JSON.parse(savedDatabase));
@@ -125,7 +146,7 @@ const AppContent: React.FC = () => {
       return;
     }
 
-    const foundUser = authDatabase.find(u => 
+    const foundUser = authDatabase.find(u =>
       (u.email === identifier || u.phone === identifier) && u.password === password
     );
 
@@ -176,28 +197,26 @@ const AppContent: React.FC = () => {
             navigate('/');
           }} />
         )}
-        
+
         {/* Sélecteur de méthode d'authentification */}
         <div className="fixed bottom-4 right-4 bg-white rounded-2xl shadow-xl p-4 border border-gray-100">
           <div className="flex gap-2 text-sm">
             <button
               onClick={() => setAuthMethod('email')}
-              className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                authMethod === 'email' 
-                  ? 'bg-[#2D5A27] text-white' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-xl font-medium transition-all ${authMethod === 'email'
+                ? 'bg-[#2D5A27] text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
             >
               <i className="fa-solid fa-envelope mr-2"></i>
               Email
             </button>
             <button
               onClick={() => setAuthMethod('sms')}
-              className={`px-4 py-2 rounded-xl font-medium transition-all ${
-                authMethod === 'sms' 
-                  ? 'bg-[#2D5A27] text-white' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-xl font-medium transition-all ${authMethod === 'sms'
+                ? 'bg-[#2D5A27] text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
             >
               <i className="fa-solid fa-mobile-alt mr-2"></i>
               SMS
@@ -213,9 +232,9 @@ const AppContent: React.FC = () => {
       <Routes>
         <Route path="/" element={
           selectedPlant ? (
-            <ProductDetails 
-              plant={selectedPlant} 
-              onBack={() => setSelectedPlant(null)} 
+            <ProductDetails
+              plant={selectedPlant}
+              onBack={() => setSelectedPlant(null)}
               onAddToCart={(p) => {
                 addToCart(p);
                 setSelectedPlant(null);
@@ -223,53 +242,53 @@ const AppContent: React.FC = () => {
               }}
             />
           ) : (
-            <Catalog 
+            <Catalog
               plants={sortedPlants}
               wishlist={wishlist}
               onToggleWishlist={toggleWishlist}
-              onAddToCart={addToCart} 
-              onSelectPlant={setSelectedPlant} 
+              onAddToCart={addToCart}
+              onSelectPlant={setSelectedPlant}
             />
           )
         } />
         <Route path="/wishlist" element={
           <div className="p-6 space-y-4 animate-fadeIn">
-             <div className="mb-6">
-                <h1 className="text-2xl font-black text-[#2D5A27]">Mes Coups de Cœur</h1>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Votre jardin idéal commence ici</p>
-             </div>
-             {wishlist.length === 0 ? (
-                <div className="text-center py-24 bg-white rounded-[40px] shadow-sm border border-gray-100 px-8">
-                  <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i className="fa-solid fa-heart-crack text-3xl text-gray-200"></i>
+            <div className="mb-6">
+              <h1 className="text-2xl font-black text-[#2D5A27]">Mes Coups de Cœur</h1>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Votre jardin idéal commence ici</p>
+            </div>
+            {wishlist.length === 0 ? (
+              <div className="text-center py-24 bg-white rounded-[40px] shadow-sm border border-gray-100 px-8">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <i className="fa-solid fa-heart-crack text-3xl text-gray-200"></i>
+                </div>
+                <h3 className="font-bold text-gray-800 mb-2">Aucune plante favorite ?</h3>
+                <p className="text-gray-400 text-xs leading-relaxed">Parcourez notre catalogue et cliquez sur le cœur pour sauvegarder vos plantes préférées.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {plants.filter(p => wishlist.includes(p.id)).map(p => (
+                  <div
+                    key={p.id}
+                    className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                    onClick={() => setSelectedPlant(p)}
+                  >
+                    <img src={p.image} className="w-full h-32 object-cover" />
+                    <div className="p-4">
+                      <h4 className="font-bold text-xs truncate text-gray-800 mb-1">{p.name}</h4>
+                      <p className="text-[#2D5A27] font-black text-xs">{p.price} F</p>
+                    </div>
                   </div>
-                  <h3 className="font-bold text-gray-800 mb-2">Aucune plante favorite ?</h3>
-                  <p className="text-gray-400 text-xs leading-relaxed">Parcourez notre catalogue et cliquez sur le cœur pour sauvegarder vos plantes préférées.</p>
-                </div>
-             ) : (
-                <div className="grid grid-cols-2 gap-4">
-                   {plants.filter(p => wishlist.includes(p.id)).map(p => (
-                      <div 
-                        key={p.id} 
-                        className="bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm active:scale-95 transition-transform" 
-                        onClick={() => setSelectedPlant(p)}
-                      >
-                         <img src={p.image} className="w-full h-32 object-cover" />
-                         <div className="p-4">
-                           <h4 className="font-bold text-xs truncate text-gray-800 mb-1">{p.name}</h4>
-                           <p className="text-[#2D5A27] font-black text-xs">{p.price} F</p>
-                         </div>
-                      </div>
-                   ))}
-                </div>
-             )}
+                ))}
+              </div>
+            )}
           </div>
         } />
         <Route path="/cart" element={
-          <Cart 
-            items={cart} 
+          <Cart
+            items={cart}
             user={user}
-            onUpdateQuantity={updateQuantity} 
+            onUpdateQuantity={updateQuantity}
             onRemove={removeFromCart}
             onPlaceOrder={handlePlaceOrder}
           />
@@ -277,21 +296,9 @@ const AppContent: React.FC = () => {
         <Route path="/profile" element={
           <Profile user={user} onLogin={handleLogin} onSignup={handleSignup} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
         } />
-        <Route path="/admin" element={
-          user.isAdmin ? (
-            <Admin 
-              orders={orders} 
-              plants={plants} 
-              onUpdateOrderStatus={handleUpdateOrderStatus} 
-              onAddPlant={addPlant}
-              onUpdatePlant={updatePlant}
-              onDeletePlant={deletePlant}
-            />
-          ) : <Navigate to="/" />
-        } />
         <Route path="/vendor-dashboard" element={
           user.isVendor ? (
-            <VendorDashboard 
+            <VendorDashboard
               user={user}
               onUpdateProfile={handleUpdateProfile}
             />
@@ -300,19 +307,23 @@ const AppContent: React.FC = () => {
         <Route path="/premium-products" element={
           <PremiumProducts />
         } />
-        <Route path="/vendor-products/:vendorId" element={
-          <VendorProducts vendorId={location.pathname.split('/vendor-products/')[1]} />
-        } />
+        <Route path="/vendor-products/:vendorId" element={<VendorProductsWrapper />} />
       </Routes>
     </Layout>
   );
 };
 
+// Wrapper component pour VendorProducts route
+const VendorProductsWrapper: React.FC = () => {
+  const { vendorId } = useParams<{ vendorId: string }>();
+  return <VendorProducts vendorId={vendorId || ''} />;
+};
+
 const App: React.FC = () => {
   return (
-    <HashRouter>
+    <Router>
       <AppContent />
-    </HashRouter>
+    </Router>
   );
 };
 
