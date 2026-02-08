@@ -235,11 +235,46 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
               <button onClick={() => setIsAdding(false)} className="text-gray-400"><i className="fa-solid fa-times text-xl"></i></button>
             </div>
             <div className="space-y-4">
+              <div className="flex flex-col items-center gap-4 p-6 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200 group hover:border-[#2D5A27] transition-all cursor-pointer relative" onClick={() => document.getElementById('image-upload')?.click()}>
+                {imagePreview ? (
+                  <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-lg">
+                    <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                      <p className="text-white font-bold text-sm">Changer la photo</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-3 mx-auto shadow-sm">
+                      <i className="fa-solid fa-camera text-2xl text-gray-400"></i>
+                    </div>
+                    <p className="text-sm font-bold text-gray-500">Ajouter une photo</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">PNG, JPG ou WEBP</p>
+                  </div>
+                )}
+                <input
+                  id="image-upload"
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+              </div>
+
               <input type="text" placeholder="Nom" className="w-full bg-gray-50 p-4 rounded-2xl font-bold" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
               <input type="number" placeholder="Prix" className="w-full bg-gray-50 p-4 rounded-2xl font-bold" value={formData.price || ''} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} />
               <input type="number" placeholder="Stock" className="w-full bg-gray-50 p-4 rounded-2xl font-bold" value={formData.stock || ''} onChange={e => setFormData({ ...formData, stock: Number(e.target.value) })} />
               <textarea placeholder="Description" className="w-full bg-gray-50 p-4 rounded-2xl font-medium h-32" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })}></textarea>
-              <button onClick={saveProduct} disabled={saving} className="w-full bg-[#E2725B] text-white py-4 rounded-2xl font-black uppercase tracking-widest">{saving ? 'Enregistrement...' : 'Enregistrer'}</button>
+              <button onClick={saveProduct} disabled={saving} className="w-full bg-[#E2725B] text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-orange-100 active:scale-95 transition-all">
+                {saving ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <i className="fa-solid fa-spinner fa-spin"></i>
+                    Enregistrement...
+                  </span>
+                ) : (
+                  'Enregistrer le produit'
+                )}
+              </button>
             </div>
           </div>
         </div>
