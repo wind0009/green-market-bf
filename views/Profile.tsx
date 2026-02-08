@@ -4,6 +4,8 @@ import VendorSubscription from './VendorSubscription';
 import VendorCodeModal from './VendorCodeModal';
 import { firebaseAuthService } from '../services/firebaseAuthService';
 
+import { useNavigate } from 'react-router-dom';
+
 interface ProfileProps {
   user: User | null;
   onLogin: (identifier: string, password?: string, isAdmin?: boolean) => void;
@@ -14,6 +16,7 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, onUpdateProfile, orders }) => {
+  const navigate = useNavigate();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +35,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  
+
   // Vendor states
   const [showVendorSubscription, setShowVendorSubscription] = useState(false);
   const [showVendorCodeModal, setShowVendorCodeModal] = useState(false);
@@ -40,14 +43,14 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
 
   const handleAccessVendor = (vendorId: string, vendorName: string) => {
     // Rediriger vers la page produits premium du vendeur
-    window.location.hash = `#/vendor-products/${vendorId}`;
+    navigate(`/vendor-products/${vendorId}`);
   };
 
   useEffect(() => {
     const handleOpenVendorSubscription = () => {
       setShowVendorSubscription(true);
     };
-    
+
     window.addEventListener('openVendorSubscription', handleOpenVendorSubscription);
     return () => window.removeEventListener('openVendorSubscription', handleOpenVendorSubscription);
   }, []);
@@ -158,7 +161,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#E2725B]/5 rounded-full -ml-32 -mb-32 blur-3xl"></div>
 
         <div className="w-full max-sm z-10 pt-10 flex flex-col items-center">
-          <div 
+          <div
             onClick={handleLogoClick}
             className="w-20 h-20 bg-white rounded-[28px] flex items-center justify-center mb-8 shadow-xl shadow-green-100/50 border border-gray-50 cursor-pointer transition-transform active:scale-90"
           >
@@ -170,13 +173,13 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
 
           <div className="w-full bg-white rounded-[40px] p-8 shadow-xl shadow-green-900/5 border border-gray-100">
             <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-8">
-              <button 
+              <button
                 onClick={() => setAuthMode('login')}
                 className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${authMode === 'login' ? 'bg-white text-[#2D5A27] shadow-sm' : 'text-gray-400'}`}
               >
                 Connexion
               </button>
-              <button 
+              <button
                 onClick={() => setAuthMode('signup')}
                 className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${authMode === 'signup' ? 'bg-white text-[#2D5A27] shadow-sm' : 'text-gray-400'}`}
               >
@@ -193,7 +196,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
                     placeholder="Ex: Jean Traoré"
                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 outline-none focus:ring-2 focus:ring-[#2D5A27] font-bold text-sm"
                     value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
               )}
@@ -201,13 +204,13 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
               <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 ml-2 mb-1 block">Numéro de téléphone</label>
                 <div className="relative">
-                   <span className="absolute left-6 top-1/2 -translate-y-1/2 text-sm font-black text-gray-400">+226</span>
-                   <input
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-sm font-black text-gray-400">+226</span>
+                  <input
                     type="tel"
                     placeholder="00 00 00 00"
                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-16 pr-6 outline-none focus:ring-2 focus:ring-[#2D5A27] font-bold text-sm tracking-widest"
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
                 </div>
               </div>
@@ -220,7 +223,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
                     placeholder="jean@gmail.com"
                     className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 outline-none focus:ring-2 focus:ring-[#2D5A27] font-bold text-sm"
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
               )}
@@ -232,9 +235,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
                   placeholder="••••••••"
                   className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-6 outline-none focus:ring-2 focus:ring-[#2D5A27] font-bold text-sm"
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-6 top-[34px] text-gray-300"
@@ -259,7 +262,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
               </button>
             </form>
           </div>
-          
+
           <p className="mt-8 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center px-10 leading-relaxed">
             En continuant, vous acceptez nos <span className="text-[#2D5A27] underline">Conditions d'Utilisation</span>
           </p>
@@ -276,23 +279,23 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
       <div className="bg-[#2D5A27] rounded-[48px] p-8 shadow-2xl relative overflow-hidden text-white">
         <div className="absolute -top-10 -right-10 w-48 h-48 bg-white/5 rounded-full"></div>
         <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-white/5 rounded-full"></div>
-        
+
         <div className="relative z-10 flex flex-col items-center text-center">
           <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-[40px] flex items-center justify-center mb-5 border border-white/20 shadow-inner">
             <span className="text-4xl font-black uppercase">{user.name.charAt(0)}</span>
           </div>
           <h2 className="text-2xl font-black mb-1">{user.name}</h2>
           <p className="text-white/60 text-xs font-black uppercase tracking-widest">{user.isAdmin ? 'Administrateur' : 'Membre Privilège'}</p>
-          
-          <button 
-            onClick={onLogout} 
+
+          <button
+            onClick={onLogout}
             className="mt-8 px-8 py-3 bg-white/10 hover:bg-white/20 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 transition-all active:scale-95"
           >
             Déconnexion
           </button>
-          
+
           {!user.isVendor && (
-            <button 
+            <button
               onClick={() => setShowVendorSubscription(true)}
               className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl text-[9px] font-medium uppercase tracking-wider transition-all"
             >
@@ -300,18 +303,18 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
               Devenir Vendeur
             </button>
           )}
-          
-          <button 
+
+          <button
             onClick={() => setShowVendorCodeModal(true)}
             className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl text-[9px] font-medium uppercase tracking-wider transition-all"
           >
             <i className="fa-solid fa-key mr-2"></i>
             Code Vendeur
           </button>
-          
+
           {user.isVendor && (
-            <button 
-              onClick={() => window.location.hash = '#/vendor-dashboard'}
+            <button
+              onClick={() => navigate('/vendor-dashboard')}
               className="mt-4 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-green-500 transition-all active:scale-95"
             >
               Compte Vendeur
@@ -342,78 +345,78 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
         </div>
 
         {user.isVendor && user.vendorStatus === 'pending' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <i className="fa-solid fa-clock text-yellow-600 text-xl"></i>
-            <div>
-              <h3 className="font-bold text-yellow-800">Demande en cours de validation</h3>
-              <p className="text-sm text-yellow-600">Votre demande de vendeur est en cours de traitement par l'administrateur.</p>
-              {user.adminMessage && (
-                <p className="text-xs text-yellow-700 mt-1">Message: {user.adminMessage}</p>
-              )}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <i className="fa-solid fa-clock text-yellow-600 text-xl"></i>
+              <div>
+                <h3 className="font-bold text-yellow-800">Demande en cours de validation</h3>
+                <p className="text-sm text-yellow-600">Votre demande de vendeur est en cours de traitement par l'administrateur.</p>
+                {user.adminMessage && (
+                  <p className="text-xs text-yellow-700 mt-1">Message: {user.adminMessage}</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {user.isVendor && user.vendorStatus === 'rejected' && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <i className="fa-solid fa-times-circle text-red-600 text-xl"></i>
-            <div>
-              <h3 className="font-bold text-red-800">Demande refusée</h3>
-              <p className="text-sm text-red-600">Votre demande de vendeur a été refusée.</p>
-              {user.adminMessage && (
-                <p className="text-xs text-red-700 mt-1">Raison: {user.adminMessage}</p>
-              )}
+        {user.isVendor && user.vendorStatus === 'rejected' && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <i className="fa-solid fa-times-circle text-red-600 text-xl"></i>
+              <div>
+                <h3 className="font-bold text-red-800">Demande refusée</h3>
+                <p className="text-sm text-red-600">Votre demande de vendeur a été refusée.</p>
+                {user.adminMessage && (
+                  <p className="text-xs text-red-700 mt-1">Raison: {user.adminMessage}</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {user.isVendor && user.vendorStatus === 'active' && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <i className="fa-solid fa-check-circle text-green-600 text-xl"></i>
-            <div>
-              <h3 className="font-bold text-green-800">Compte Vendeur Actif</h3>
-              <p className="text-sm text-green-600">Votre compte vendeur est approuvé et fonctionnel.</p>
-              {user.vendorCode && (
-                <p className="text-xs font-mono text-green-700 mt-1">Code: {user.vendorCode}</p>
-              )}
-              {user.adminMessage && (
-                <p className="text-xs text-green-700 mt-1">Message de l'admin: {user.adminMessage}</p>
-              )}
+        {user.isVendor && user.vendorStatus === 'active' && (
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
+            <div className="flex items-center gap-3">
+              <i className="fa-solid fa-check-circle text-green-600 text-xl"></i>
+              <div>
+                <h3 className="font-bold text-green-800">Compte Vendeur Actif</h3>
+                <p className="text-sm text-green-600">Votre compte vendeur est approuvé et fonctionnel.</p>
+                {user.vendorCode && (
+                  <p className="text-xs font-mono text-green-700 mt-1">Code: {user.vendorCode}</p>
+                )}
+                {user.adminMessage && (
+                  <p className="text-xs text-green-700 mt-1">Message de l'admin: {user.adminMessage}</p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="grid grid-cols-2 gap-5">
-        <div className="bg-white p-6 rounded-[36px] border border-gray-100 shadow-sm">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Commandes</p>
-          <p className="text-3xl font-black text-[#2D5A27]">{userOrders.length}</p>
-        </div>
-        <div className="bg-white p-6 rounded-[36px] border border-gray-100 shadow-sm">
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Points</p>
-          <p className="text-3xl font-black text-[#E2725B]">{userOrders.length * 50} <span className="text-xs">pts</span></p>
-        </div>
-      </div>
-
-      <section>
-        <div className="flex justify-between items-center mb-6 px-2">
-          <h3 className="text-xl font-black text-[#2D5A27]">Historique</h3>
-          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Derniers achats</span>
-        </div>
-        
-        {userOrders.length === 0 ? (
-          <div className="bg-white rounded-[40px] p-12 text-center text-gray-400 border border-dashed border-gray-200">
-             <i className="fa-solid fa-bag-shopping text-4xl mb-5 opacity-20 block"></i>
-             <p className="text-sm font-bold">Vous n'avez pas encore de commandes.</p>
+        <div className="grid grid-cols-2 gap-5">
+          <div className="bg-white p-6 rounded-[36px] border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Commandes</p>
+            <p className="text-3xl font-black text-[#2D5A27]">{userOrders.length}</p>
           </div>
-        ) : (
-          <div className="space-y-5">
-            {userOrders.map(order => (
+          <div className="bg-white p-6 rounded-[36px] border border-gray-100 shadow-sm">
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Points</p>
+            <p className="text-3xl font-black text-[#E2725B]">{userOrders.length * 50} <span className="text-xs">pts</span></p>
+          </div>
+        </div>
+
+        <section>
+          <div className="flex justify-between items-center mb-6 px-2">
+            <h3 className="text-xl font-black text-[#2D5A27]">Historique</h3>
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Derniers achats</span>
+          </div>
+
+          {userOrders.length === 0 ? (
+            <div className="bg-white rounded-[40px] p-12 text-center text-gray-400 border border-dashed border-gray-200">
+              <i className="fa-solid fa-bag-shopping text-4xl mb-5 opacity-20 block"></i>
+              <p className="text-sm font-bold">Vous n'avez pas encore de commandes.</p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {userOrders.map(order => (
                 <div key={order.id} className="bg-white rounded-[36px] border border-gray-100 shadow-sm overflow-hidden">
                   <div className="p-6 flex justify-between items-center">
                     <div className="flex items-center gap-5">
@@ -426,35 +429,35 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
                       </div>
                     </div>
                     <div className="text-right">
-                        <p className="font-black text-[#2D5A27] text-lg">{order.total} F</p>
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-orange-100 text-orange-700 rounded-lg">{order.status}</span>
+                      <p className="font-black text-[#2D5A27] text-lg">{order.total} F</p>
+                      <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-orange-100 text-orange-700 rounded-lg">{order.status}</span>
                     </div>
                   </div>
                 </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Vendor Code Modal */}
+        {showVendorCodeModal && (
+          <VendorCodeModal
+            user={user}
+            onClose={() => setShowVendorCodeModal(false)}
+            onAccessVendor={handleAccessVendor}
+          />
         )}
-      </section>
 
-      {/* Vendor Code Modal */}
-      {showVendorCodeModal && (
-        <VendorCodeModal 
-          user={user}
-          onClose={() => setShowVendorCodeModal(false)}
-          onAccessVendor={handleAccessVendor}
-        />
-      )}
-
-      {/* Vendor Subscription Modal */}
-      {showVendorSubscription && (
-        <VendorSubscription 
-          user={user}
-          onUpdateProfile={onUpdateProfile}
-          onClose={() => setShowVendorSubscription(false)}
-        />
-      )}
+        {/* Vendor Subscription Modal */}
+        {showVendorSubscription && (
+          <VendorSubscription
+            user={user}
+            onUpdateProfile={onUpdateProfile}
+            onClose={() => setShowVendorSubscription(false)}
+          />
+        )}
+      </div>
     </div>
-  </div>
   );
 };
 
