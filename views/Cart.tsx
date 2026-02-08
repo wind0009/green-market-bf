@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CartItem, District, Order } from '../types';
 import { DISTRICTS } from '../constants';
 
@@ -11,6 +11,7 @@ interface CartProps {
 }
 
 const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceOrder }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState<'cart' | 'checkout' | 'success'>('cart');
   const [method, setMethod] = useState<'Livraison' | 'Retrait'>('Livraison');
   const [selectedDistrict, setSelectedDistrict] = useState<District>(DISTRICTS[0]);
