@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { VendorProduct } from '../types';
+import { VendorProduct, User, Plant } from '../types';
+import { plantService } from '../services/plantService';
+import { userService } from '../services/userService';
+
+// Helper to check/cast if needed, though we will just use Plant for now
+// assuming premium plants have vendor info
 
 interface PremiumProductsProps {
   vendorCode?: string;
 }
 
 const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
-  const [allVendorProducts, setAllVendorProducts] = useState<VendorProduct[]>([]);
+  const [allVendorProducts, setAllVendorProducts] = useState<Plant[]>([]);
   const [accessCode, setAccessCode] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -14,19 +19,11 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
   const [vendorName, setVendorName] = useState<string>('');
   const [vendorId, setVendorId] = useState<string>('');
 
-  // Charger tous les produits vendeurs
+  // Charger tous les produits vendeurs (premium)
   useEffect(() => {
-    const loadAllVendorProducts = () => {
-      const allProducts: VendorProduct[] = [];
-      // Charger tous les produits vendeurs depuis localStorage
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('vendor_products_')) {
-          const products = JSON.parse(localStorage.getItem(key) || '[]');
-          allProducts.push(...products);
-        }
-      }
-      setAllVendorProducts(allProducts);
+    const loadAllVendorProducts = async () => {
+      const products = await plantService.getPremiumPlants();
+      setAllVendorProducts(products);
     };
 
     loadAllVendorProducts();
@@ -42,51 +39,53 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
     }
   }, [vendorCode]);
 
-  const verifyCode = (code: string) => {
+  const verifyCode = async (code: string) => {
     setLoading(true);
-    
-    // Chercher directement le vendeur correspondant au code
-    let foundVendor = null;
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('gm_user_')) {
-        const userData = JSON.parse(localStorage.getItem(key) || '{}');
-        if (userData.isVendor && userData.vendorStatus === 'active' && userData.vendorCode === code.toUpperCase()) {
-          foundVendor = userData;
-          break;
-        }
-      }
-    }
 
-    if (foundVendor) {
-      setIsAuthenticated(true);
-      setVendorName(foundVendor.name);
-      setVendorId(foundVendor.id);
-      
-      // Sauvegarder l'accès pour cet utilisateur
-      const currentUserId = localStorage.getItem('gm_current_user_id');
-      if (currentUserId) {
-        const userVendors = JSON.parse(localStorage.getItem(`user_vendors_${currentUserId}`) || '[]');
-        if (!userVendors.some((v: any) => v.vendorId === foundVendor.id)) {
-          userVendors.push({
-            vendorId: foundVendor.id,
-            vendorName: foundVendor.name,
-            vendorCode: code.toUpperCase(),
-            accessDate: new Date().toISOString()
-          });
-          localStorage.setItem(`user_vendors_${currentUserId}`, JSON.stringify(userVendors));
+    try {
+      // Chercher directement le vendeur correspondant au code
+      const foundVendor = await userService.findVendorByCode(code.toUpperCase());
+
+      if (foundVendor && foundVendor.vendorStatus === 'active') { // Ensure active
+        setIsAuthenticated(true);
+        setVendorName(foundVendor.name);
+        setVendorId(foundVendor.id);
+
+        // Sauvegarder l'accès pour cet utilisateur (Optional: migrate to Firestore user profile later)
+        // For now, local storage for "unlocked" vendors is okay for client-side state
+        const currentUserId = localStorage.getItem('gm_current_user_id'); // We should use auth context really, but keeping legacy structure for now
+        if (currentUserId) {
+          const userVendors = JSON.parse(localStorage.getItem(`user_vendors_${currentUserId}`) || '[]');
+          if (!userVendors.some((v: any) => v.vendorId === foundVendor.id)) {
+            userVendors.push({
+              vendorId: foundVendor.id,
+              vendorName: foundVendor.name,
+              vendorCode: code.toUpperCase(),
+              accessDate: new Date().toISOString()
+            });
+            localStorage.setItem(`user_vendors_${currentUserId}`, JSON.stringify(userVendors));
+          }
         }
+
+        // Filter displayed products to ONLY this vendor's products if authenticated via code
+        // Or should we show ALL premium products?
+        // Original code:
+        // const vendorProducts = JSON.parse(localStorage.getItem(`vendor_products_${foundVendor.id}`) || '[]');
+        // setAllVendorProducts(vendorProducts);
+        // It showed ONLY the specific vendor's products after code entry.
+
+        const vendorProducts = await plantService.getPlantsByVendor(foundVendor.id);
+        setAllVendorProducts(vendorProducts);
+
+        alert(`🎉 Accès autorisé ! Bienvenue chez ${foundVendor.name}`);
+      } else {
+        setError('Code vendeur invalide ou expiré');
       }
-      
-      // Charger les produits de ce vendeur
-      const vendorProducts = JSON.parse(localStorage.getItem(`vendor_products_${foundVendor.id}`) || '[]');
-      setAllVendorProducts(vendorProducts);
-      
+    } catch (err: any) {
+      console.error(err);
+      setError('Une erreur est survenue');
+    } finally {
       setLoading(false);
-      alert(`🎉 Accès autorisé ! Bienvenue chez ${foundVendor.name}`);
-    } else {
-      setLoading(false);
-      setError('Code vendeur invalide ou expiré');
     }
   };
 
@@ -120,6 +119,12 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
                 required
               />
             </div>
+
+            {error && (
+              <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded-lg">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
@@ -180,7 +185,7 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
                   <img src={product.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 </div>
               </div>
-              
+
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
@@ -189,12 +194,13 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-lg text-purple-600">{product.price} F</p>
-                    <p className="text-xs text-gray-400">par {product.vendorName}</p>
+                    {/* Assuming vendorName is present in typical vendor product data */}
+                    <p className="text-xs text-gray-400">par {(product as any).vendorName || 'Vendeur Partenaire'}</p>
                   </div>
                 </div>
-                
+
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-bold ${product.stock < 5 ? 'text-red-500' : 'text-green-500'}`}>

@@ -1,33 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { VendorProduct } from '../types';
+import { VendorProduct, User, Plant } from '../types';
+import { plantService } from '../services/plantService';
+import { userService } from '../services/userService';
+
+// Helper to convert Plant to VendorProduct or similar display
+// We can use Plant type directly since VendorProduct extends it
+// or cast if we need specific vendor fields which should be present
 
 interface VendorProductsProps {
   vendorId: string;
 }
 
 const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
-  const [vendorProducts, setVendorProducts] = useState<VendorProduct[]>([]);
-  const [vendorInfo, setVendorInfo] = useState<any>(null);
+  const [vendorProducts, setVendorProducts] = useState<Plant[]>([]);
+  const [vendorInfo, setVendorInfo] = useState<User | null>(null);
   const [cart, setCart] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Charger les produits du vendeur
-    const savedProducts = localStorage.getItem(`vendor_products_${vendorId}`);
-    if (savedProducts) {
-      setVendorProducts(JSON.parse(savedProducts));
-    }
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Parallel data fetching
+        const [products, vendor] = await Promise.all([
+          plantService.getPlantsByVendor(vendorId),
+          userService.getUserById(vendorId)
+        ]);
 
-    // Charger les informations du vendeur
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('gm_user_')) {
-        const userData = JSON.parse(localStorage.getItem(key) || '{}');
-        if (userData.id === vendorId) {
-          setVendorInfo(userData);
-          break;
-        }
+        setVendorProducts(products);
+        setVendorInfo(vendor);
+      } catch (error) {
+        console.error("Failed to load vendor data", error);
+      } finally {
+        setLoading(false);
       }
+    };
+
+    if (vendorId) {
+      fetchData();
     }
 
     // Charger le panier
@@ -35,24 +45,22 @@ const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
     if (savedCart) {
       setCart(JSON.parse(savedCart));
     }
-
-    setLoading(false);
   }, [vendorId]);
 
   const addToCart = (product: VendorProduct) => {
     const existingItem = cart.find(item => item.id === product.id);
     let newCart;
-    
+
     if (existingItem) {
-      newCart = cart.map(item => 
-        item.id === product.id 
+      newCart = cart.map(item =>
+        item.id === product.id
           ? { ...item, quantity: item.quantity + 1 }
           : item
       );
     } else {
       newCart = [...cart, { ...product, quantity: 1 }];
     }
-    
+
     setCart(newCart);
     localStorage.setItem('gm_cart', JSON.stringify(newCart));
     alert('✅ Produit ajouté au panier !');
@@ -114,7 +122,7 @@ const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
                   <img src={product.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 </div>
               </div>
-              
+
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
@@ -126,9 +134,9 @@ const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
                     <p className="text-xs text-gray-400">par {product.vendorName}</p>
                   </div>
                 </div>
-                
+
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-                
+
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-bold ${product.stock < 5 ? 'text-red-500' : 'text-green-500'}`}>

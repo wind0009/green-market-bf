@@ -43,7 +43,7 @@ const VendorSubscription: React.FC<VendorSubscriptionProps> = ({ user, onUpdateP
 
     onUpdateProfile(vendorApplication);
     setSuccess('📝 Demande de vendeur soumise ! L\'administrateur va valider votre demande dans les plus brefs délais.');
-    
+
     // Rediriger après 3 secondes
     setTimeout(() => {
       onClose();
@@ -53,17 +53,23 @@ const VendorSubscription: React.FC<VendorSubscriptionProps> = ({ user, onUpdateP
   const handlePaymentConfirmation = () => {
     setPaymentConfirmed(true);
     setShowVerification(true);
-    
+
     // Générer un code de validation aléatoire
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // Simuler l'envoi du code
+    alert(`📨 MESSAGE SIMULÉ DE GREEN MARKET:\n\nVotre code de validation vendeur est : ${code}`);
+
     onUpdateProfile({
-      isVendor: true,
+      isVendor: true, // Mark as vendor immediately for data consistency, though status is pending
       vendorStatus: 'pending',
       vendorCode: code,
       vendorSubscription: {
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 jours
         amount: 5000,
+        paymentMethod: 'Orange Money',
+        paymentConfirmed: true,
         status: 'pending'
       }
     });
@@ -101,12 +107,12 @@ const VendorSubscription: React.FC<VendorSubscriptionProps> = ({ user, onUpdateP
               <h3 className="font-bold text-orange-600 mb-2">📱 Instructions de Paiement</h3>
               <div className="space-y-3 text-sm">
                 <p className="font-medium">Pour devenir vendeur premium, effectuez le paiement suivant :</p>
-                
+
                 <div className="bg-white rounded-xl p-3 border border-orange-200">
                   <p className="font-bold text-orange-600">Montant : 5 000 FCFA/mois</p>
                   <p className="font-mono text-xs mt-2">*144*2*1*07659801*5000#</p>
                 </div>
-                
+
                 <div className="text-xs text-gray-600 space-y-1">
                   <p>1. Allez dans votre application Orange Money</p>
                   <p>2. Choisissez "Paiement" ou "Transfert"</p>

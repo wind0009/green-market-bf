@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { User } from '../types';
+import { userService } from '../services/userService';
 
 interface VendorCodeModalProps {
-  user: User;
   onClose: () => void;
-  onAccessVendor: (vendorId: string, vendorName: string) => void;
+  // onAccessVendor remains for types, but logic is handled internally or via callback
 }
 
-const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ user, onClose, onAccessVendor }) => {
+const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ onClose }) => {
   const [vendorCode, setVendorCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,20 +22,7 @@ const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ user, onClose, onAcce
     setError(null);
 
     try {
-      // Chercher le vendeur correspondant au code (recherche globale)
-      let foundVendor = null;
-      
-      // Parcourir TOUS les utilisateurs pour trouver le vendeur avec ce code
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('gm_user_')) {
-          const userData = JSON.parse(localStorage.getItem(key) || '{}');
-          if (userData.isVendor && userData.vendorStatus === 'active' && userData.vendorCode === vendorCode.toUpperCase()) {
-            foundVendor = userData;
-            break;
-          }
-        }
-      }
+      const foundVendor = await userService.findVendorByCode(vendorCode.toUpperCase());
 
       if (foundVendor) {
         // Rediriger directement vers la page du vendeur
@@ -46,7 +33,8 @@ const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ user, onClose, onAcce
         setError('Code vendeur invalide ou expiré');
       }
     } catch (err: any) {
-      setError(err.message || 'Une erreur est survenue');
+      console.error(err);
+      setError('Une erreur est survenue lors de la recherche');
     } finally {
       setLoading(false);
     }
@@ -105,8 +93,8 @@ const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ user, onClose, onAcce
 
           <div className="text-center">
             <p className="text-xs text-gray-500">
-              Vous n'avez pas de code ? 
-              <button 
+              Vous n'avez pas de code ?
+              <button
                 onClick={() => {
                   onClose();
                   // Ouvrir la modal d'abonnement vendeur

@@ -57,6 +57,17 @@ export class PlantService {
         }
     }
 
+    async getPremiumPlants(): Promise<Plant[]> {
+        try {
+            const q = query(collection(db, this.plantsCollection), where('isPremium', '==', true));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Plant));
+        } catch (error) {
+            console.error('Error fetching premium plants:', error);
+            return [];
+        }
+    }
+
     async seedPlants(plants: Plant[]): Promise<void> {
         try {
             const batch = writeBatch(db);

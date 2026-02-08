@@ -48,6 +48,28 @@ export const userService = {
     }
   },
 
+  // Trouver un vendeur par son code
+  findVendorByCode: async (code: string): Promise<User | null> => {
+    try {
+      const usersRef = collection(db, USERS_COLLECTION);
+      const q = query(usersRef, where('vendorCode', '==', code));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return null;
+      }
+
+      const userDoc = snapshot.docs[0];
+      return {
+        id: userDoc.id,
+        ...userDoc.data()
+      } as User;
+    } catch (error) {
+      console.error('Error finding vendor by code:', error);
+      return null;
+    }
+  },
+
   // Récupérer tous les utilisateurs
   getAllUsers: async (): Promise<User[]> => {
     const usersRef = collection(db, USERS_COLLECTION);

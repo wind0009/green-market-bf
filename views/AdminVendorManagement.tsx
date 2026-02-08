@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
+import { userService } from '../services/userService';
 
 interface AdminVendorManagementProps {
   onClose: () => void;
@@ -16,62 +17,62 @@ const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ onClose }
     loadVendors();
   }, []);
 
-  const loadVendors = () => {
-    const vendors: User[] = [];
-    
-    // Charger tous les utilisateurs
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('gm_user_')) {
-        const userData = JSON.parse(localStorage.getItem(key) || '{}');
-        if (userData.isVendor) {
-          vendors.push(userData);
-        }
-      }
+  const loadVendors = async () => {
+    try {
+      // Charger tous les utilisateurs
+      const allUsers = await userService.getAllUsers();
+
+      const vendors = allUsers.filter(u => u.isVendor);
+
+      // Séparer les vendeurs en attente et actifs
+      const pending = vendors.filter(v => v.vendorStatus === 'pending');
+      const active = vendors.filter(v => v.vendorStatus === 'active' || v.vendorStatus === 'approved');
+
+      setPendingVendors(pending);
+      setActiveVendors(active);
+    } catch (error) {
+      console.error("Failed to load vendors", error);
     }
-
-    // Séparer les vendeurs en attente et actifs
-    const pending = vendors.filter(v => v.vendorStatus === 'pending');
-    const active = vendors.filter(v => v.vendorStatus === 'active' || v.vendorStatus === 'approved');
-
-    setPendingVendors(pending);
-    setActiveVendors(active);
   };
 
-  const approveVendor = (vendor: User) => {
+  const approveVendor = async (vendor: User) => {
     if (!message.trim()) {
       alert('Veuillez ajouter un message pour le vendeur');
       return;
     }
 
     setLoading(true);
-    
+
     // Générer un code vendeur
     const vendorCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
+
     // Mettre à jour le vendeur
-    const updatedVendor = {
-      ...vendor,
+    const updates: Partial<User> = {
       vendorStatus: 'active' as const,
       vendorCode: vendorCode,
       vendorApprovalDate: new Date().toISOString(),
       adminMessage: message
     };
 
-    // Sauvegarder dans localStorage
-    localStorage.setItem(`gm_user_${vendor.id}`, JSON.stringify(updatedVendor));
-    
-    // Envoyer un message de notification (simulé)
-    alert(`✅ Vendeur approuvé !\n\nCode vendeur: ${vendorCode}\nMessage envoyé: ${message}`);
-    
-    // Réinitialiser
-    setSelectedVendor(null);
-    setMessage('');
-    setLoading(false);
-    loadVendors();
+    try {
+      await userService.updateUser(vendor.id, updates);
+
+      // Envoyer un message de notification (simulé)
+      alert(`✅ Vendeur approuvé !\n\nCode vendeur: ${vendorCode}\nMessage envoyé: ${message}`);
+
+      // Réinitialiser
+      setSelectedVendor(null);
+      setMessage('');
+      loadVendors();
+    } catch (error) {
+      console.error("Failed to approve vendor", error);
+      alert("Erreur lors de l'approbation.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const rejectVendor = (vendor: User) => {
+  const rejectVendor = async (vendor: User) => {
     if (!message.trim()) {
       alert('Veuillez ajouter un message expliquant le refus');
       return;
@@ -82,39 +83,46 @@ const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ onClose }
     }
 
     setLoading(true);
-    
+
     // Mettre à jour le vendeur
-    const updatedVendor = {
-      ...vendor,
+    const updates: Partial<User> = {
       vendorStatus: 'rejected' as const,
       adminMessage: message
     };
 
-    // Sauvegarder dans localStorage
-    localStorage.setItem(`gm_user_${vendor.id}`, JSON.stringify(updatedVendor));
-    
-    alert(`❌ Demande refusée. Message envoyé: ${message}`);
-    
-    // Réinitialiser
-    setSelectedVendor(null);
-    setMessage('');
-    setLoading(false);
-    loadVendors();
+    try {
+      await userService.updateUser(vendor.id, updates);
+
+      alert(`❌ Demande refusée. Message envoyé: ${message}`);
+
+      // Réinitialiser
+      setSelectedVendor(null);
+      setMessage('');
+      loadVendors();
+    } catch (error) {
+      console.error("Failed to reject vendor", error);
+      alert("Erreur lors du refus.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deactivateVendor = (vendor: User) => {
+  const deactivateVendor = async (vendor: User) => {
     if (!confirm(`Êtes-vous sûr de vouloir désactiver ${vendor.name} ?`)) {
       return;
     }
 
-    const updatedVendor = {
-      ...vendor,
+    const updates: Partial<User> = {
       vendorStatus: 'rejected' as const,
       adminMessage: 'Compte désactivé par l\'administrateur'
     };
 
-    localStorage.setItem(`gm_user_${vendor.id}`, JSON.stringify(updatedVendor));
-    loadVendors();
+    try {
+      await userService.updateUser(vendor.id, updates);
+      loadVendors();
+    } catch (error) {
+      console.error("Failed to deactivate vendor", error);
+    }
   };
 
   return (
@@ -206,7 +214,7 @@ const AdminVendorManagement: React.FC<AdminVendorManagementProps> = ({ onClose }
               <h3 className="text-xl font-bold mb-4">
                 Traitement: {selectedVendor.name}
               </h3>
-              
+
               <div className="mb-4">
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Message pour le vendeur
