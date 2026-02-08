@@ -22,10 +22,10 @@ const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ user, onClose, onAcce
     setError(null);
 
     try {
-      // Chercher le vendeur correspondant au code
+      // Chercher le vendeur correspondant au code (recherche globale)
       let foundVendor = null;
       
-      // Parcourir tous les utilisateurs pour trouver le vendeur
+      // Parcourir TOUS les utilisateurs pour trouver le vendeur avec ce code
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && key.startsWith('gm_user_')) {
@@ -38,21 +38,10 @@ const VendorCodeModal: React.FC<VendorCodeModalProps> = ({ user, onClose, onAcce
       }
 
       if (foundVendor) {
-        // Sauvegarder l'accès au vendeur POUR CET UTILISATEUR SPECIFIQUE
-        const userVendors = JSON.parse(localStorage.getItem(`user_vendors_${user.id}`) || '[]');
-        if (!userVendors.some((v: any) => v.vendorId === foundVendor.id)) {
-          userVendors.push({
-            vendorId: foundVendor.id,
-            vendorName: foundVendor.name,
-            vendorCode: vendorCode.toUpperCase(),
-            accessDate: new Date().toISOString()
-          });
-          localStorage.setItem(`user_vendors_${user.id}`, JSON.stringify(userVendors));
-        }
-        
-        onAccessVendor(foundVendor.id, foundVendor.name);
+        // Rediriger directement vers la page du vendeur
+        window.location.hash = `#/vendor-products/${foundVendor.id}`;
         onClose();
-        alert(`🎉 Accès autorisé ! Vous pouvez maintenant commander chez ${foundVendor.name}`);
+        alert(`🎉 Accès autorisé ! Bienvenue chez ${foundVendor.name}`);
       } else {
         setError('Code vendeur invalide ou expiré');
       }

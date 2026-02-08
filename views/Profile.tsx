@@ -340,24 +340,53 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
             <p className="text-sm font-black text-gray-800">{user.email}</p>
           </div>
         </div>
-      </div>
 
-      {user.isAdmin && (
-        <button 
-          onClick={() => window.location.hash = '#/admin'}
-          className="w-full bg-[#E2725B] text-white p-6 rounded-[36px] shadow-xl shadow-orange-100 flex items-center justify-between group active:scale-95 transition-all"
-        >
-          <div className="flex items-center gap-5">
-            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
-              <i className="fa-solid fa-chart-line text-2xl"></i>
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black uppercase tracking-[0.15em] text-white/70">Console de gestion</p>
-              <p className="text-xl font-black">Dashboard Admin</p>
+        {user.isVendor && user.vendorStatus === 'pending' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <i className="fa-solid fa-clock text-yellow-600 text-xl"></i>
+            <div>
+              <h3 className="font-bold text-yellow-800">Demande en cours de validation</h3>
+              <p className="text-sm text-yellow-600">Votre demande de vendeur est en cours de traitement par l'administrateur.</p>
+              {user.adminMessage && (
+                <p className="text-xs text-yellow-700 mt-1">Message: {user.adminMessage}</p>
+              )}
             </div>
           </div>
-          <i className="fa-solid fa-arrow-right-long text-xl opacity-50 group-hover:translate-x-2 transition-transform"></i>
-        </button>
+        </div>
+      )}
+
+      {user.isVendor && user.vendorStatus === 'rejected' && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <i className="fa-solid fa-times-circle text-red-600 text-xl"></i>
+            <div>
+              <h3 className="font-bold text-red-800">Demande refusée</h3>
+              <p className="text-sm text-red-600">Votre demande de vendeur a été refusée.</p>
+              {user.adminMessage && (
+                <p className="text-xs text-red-700 mt-1">Raison: {user.adminMessage}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {user.isVendor && user.vendorStatus === 'active' && (
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <i className="fa-solid fa-check-circle text-green-600 text-xl"></i>
+            <div>
+              <h3 className="font-bold text-green-800">Compte Vendeur Actif</h3>
+              <p className="text-sm text-green-600">Votre compte vendeur est approuvé et fonctionnel.</p>
+              {user.vendorCode && (
+                <p className="text-xs font-mono text-green-700 mt-1">Code: {user.vendorCode}</p>
+              )}
+              {user.adminMessage && (
+                <p className="text-xs text-green-700 mt-1">Message de l'admin: {user.adminMessage}</p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="grid grid-cols-2 gap-5">
@@ -425,6 +454,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
         />
       )}
     </div>
+  </div>
   );
 };
 

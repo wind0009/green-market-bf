@@ -2,15 +2,15 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-// Configuration Firebase - Remplacez avec vos configurations
+// Configuration Firebase - Utilise les variables d'environnement
 const firebaseConfig = {
-  apiKey: "AIzaSyB-IAFIEMJA9U29X10ItTLVfLrUdugKn9c",
-  authDomain: "green-market-bf-ebdb2.firebaseapp.com",
-  projectId: "green-market-bf-ebdb2",
-  storageBucket: "green-market-bf-ebdb2.firebasestorage.app",
-  messagingSenderId: "1004093672338",
-  appId: "1:1004093672338:web:316ce1c06214e75c1d4f4b",
-  measurementId: "G-92YHSM3BNN"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialiser Firebase

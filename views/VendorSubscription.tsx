@@ -12,6 +12,43 @@ const VendorSubscription: React.FC<VendorSubscriptionProps> = ({ user, onUpdateP
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [verificationCode, setVerificationCode] = useState('');
   const [showVerification, setShowVerification] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!paymentConfirmed) {
+      setError('Veuillez confirmer avoir effectué le paiement');
+      return;
+    }
+
+    // Créer la demande de vendeur avec statut "pending"
+    const vendorApplication = {
+      isVendor: true,
+      vendorStatus: 'pending' as const,
+      vendorSubscription: {
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 jours
+        paymentConfirmed: true,
+        paymentMethod: 'Orange Money',
+        amount: 5000
+      },
+      vendorApplicationDate: new Date().toISOString(),
+      vendorCode: null, // Sera généré par l'admin après approbation
+      adminMessage: null
+    };
+
+    onUpdateProfile(vendorApplication);
+    setSuccess('📝 Demande de vendeur soumise ! L\'administrateur va valider votre demande dans les plus brefs délais.');
+    
+    // Rediriger après 3 secondes
+    setTimeout(() => {
+      onClose();
+    }, 3000);
+  };
 
   const handlePaymentConfirmation = () => {
     setPaymentConfirmed(true);

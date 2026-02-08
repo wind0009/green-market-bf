@@ -1,6 +1,6 @@
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
   signOut,
@@ -69,7 +69,7 @@ export class EmailAuthService {
       };
     } catch (error: any) {
       console.error('Erreur inscription:', error);
-      
+
       if (error.code === 'auth/email-already-in-use') {
         return { success: false, error: 'Cet email est déjà utilisé. Essayez de vous connecter.' };
       } else if (error.code === 'auth/weak-password') {
@@ -77,7 +77,7 @@ export class EmailAuthService {
       } else if (error.code === 'auth/invalid-email') {
         return { success: false, error: 'Email invalide.' };
       }
-      
+
       return { success: false, error: error.message || 'Erreur lors de l\'inscription.' };
     }
   }
@@ -89,7 +89,7 @@ export class EmailAuthService {
       const users = JSON.parse(localStorage.getItem('gm_auth_database') || '[]');
       const updatedUsers = users.filter((u: User) => u.email !== email);
       localStorage.setItem('gm_auth_database', JSON.stringify(updatedUsers));
-      
+
       return { success: true, user: null };
     } catch (error: any) {
       return { success: false, error: error.message || 'Erreur lors de la suppression.' };
@@ -112,9 +112,9 @@ export class EmailAuthService {
       } else {
         // Vérifier si l'email a été vérifié
         if (!firebaseUser.emailVerified) {
-          return { 
-            success: false, 
-            error: 'Veuillez vérifier votre email avant de vous connecter. Un email de vérification a été envoyé.' 
+          return {
+            success: false,
+            error: 'Veuillez vérifier votre email avant de vous connecter. Un email de vérification a été envoyé.'
           };
         }
       }
@@ -136,7 +136,7 @@ export class EmailAuthService {
       };
     } catch (error: any) {
       console.error('Erreur connexion:', error);
-      
+
       if (error.code === 'auth/user-not-found') {
         return { success: false, error: 'Utilisateur non trouvé. Vérifiez vos identifiants.' };
       } else if (error.code === 'auth/wrong-password') {
@@ -146,7 +146,7 @@ export class EmailAuthService {
       } else if (error.code === 'auth/user-disabled') {
         return { success: false, error: 'Ce compte a été désactivé.' };
       }
-      
+
       return { success: false, error: error.message || 'Erreur de connexion.' };
     }
   }
@@ -178,8 +178,8 @@ export class EmailAuthService {
   }
 }
 
-export const onAuthStateChanged = (callback: (user: FirebaseUser | null) => void) => {
-  return auth.onAuthStateChanged(callback);
+export const listenToAuthChanges = (callback: (user: FirebaseUser | null) => void) => {
+  return onAuthStateChanged(auth, callback);
 };
 
 export const emailAuthService = new EmailAuthService();

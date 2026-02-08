@@ -44,27 +44,33 @@ export interface Order {
   date: string;
 }
 
+export interface Address {
+  district: string;
+  city: string;
+  landmark: string;
+}
+
 export interface User {
   id: string;
   phone: string;
-  email: string;
+  email?: string;
   name: string;
-  isAdmin: boolean;
-  isProfileComplete: boolean;
+  isAdmin?: boolean;
+  isProfileComplete?: boolean;
+  addresses?: Address[];
   isVendor?: boolean;
-  vendorStatus?: 'pending' | 'active' | 'expired';
+  vendorStatus?: 'pending' | 'approved' | 'rejected' | 'active';
   vendorSubscription?: {
     startDate: string;
     endDate: string;
-    amount: number;
-    status: 'active' | 'expired' | 'pending';
+    paymentConfirmed: boolean;
+    paymentMethod?: string;
+    amount?: number;
   };
   vendorCode?: string;
-  addresses: {
-    district: string;
-    city: string;
-    landmark: string;
-  }[];
+  vendorApplicationDate?: string;
+  vendorApprovalDate?: string;
+  adminMessage?: string;
 }
 
 export interface VendorProduct extends Plant {
@@ -74,7 +80,9 @@ export interface VendorProduct extends Plant {
 }
 
 export interface District {
+  id: string;
   name: string;
   city: string;
   landmark: string;
 }
+
