@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, VendorProduct, Plant } from '../types';
 import { plantService } from '../services/plantService';
-import { userService } => '../services/userService';
+import { userService } from '../services/userService';
 
 // Helper to convert Plant to VendorProduct
 const isVendorProduct = (plant: Plant): plant is VendorProduct => {
