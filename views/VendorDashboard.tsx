@@ -202,7 +202,7 @@ const VendorDashboard: React.FC<VendorDashboardProps> = ({ user, onUpdateProfile
           >
             Générer Code
           </button>
-          <button onClick={() => window.location.hash = '#/'} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-400 shadow-sm border border-gray-100">
+          <button onClick={() => navigate('/')} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-400 shadow-sm border border-gray-100">
             <i className="fa-solid fa-house"></i>
           </button>
         </div>
