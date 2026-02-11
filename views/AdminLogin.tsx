@@ -24,6 +24,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
         phone: 'Admin',
         email: 'admin@greenmarket.bf',
         name: 'Administrateur',
+        role: 'super-admin',
         isAdmin: true,
         isProfileComplete: true,
         addresses: []

@@ -34,23 +34,23 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
 
   const validateForm = (): boolean => {
     const newErrors: string[] = [];
-    
+
     if (authMode === 'signup') {
       if (!formData.name.trim()) newErrors.push('Le nom est obligatoire');
       if (formData.password !== formData.confirmPassword) {
         newErrors.push('Les mots de passe ne correspondent pas');
       }
     }
-    
+
     if (!formData.email.trim()) newErrors.push('L\'email est obligatoire');
     if (!formData.password) newErrors.push('Le mot de passe est obligatoire');
     if (formData.password.length < 6) newErrors.push('Le mot de passe doit faire au moins 6 caractères');
-    
+
     if (newErrors.length > 0) {
       setError(newErrors.join('. '));
       return false;
     }
-    
+
     setError(null);
     return true;
   };
@@ -59,21 +59,21 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
-    
+
     try {
       let result: AuthResult;
-      
+
       if (authMode === 'signup') {
         result = await emailAuthService.signUp(
           formData.email,
           formData.password,
           formData.name
         );
-        
+
         if (result.success) {
           setSuccess('Compte créé avec succès ! Vous pouvez maintenant vous connecter.');
           // Réinitialiser le formulaire
@@ -93,7 +93,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
           formData.email,
           formData.password
         );
-        
+
         if (result.success && result.user) {
           onLogin(result.user);
         } else {
@@ -112,7 +112,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
       setError('Veuillez entrer votre email d\'abord');
       return;
     }
-    
+
     setLoading(true);
     try {
       const result = await emailAuthService.resendEmailVerification();
@@ -135,6 +135,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         phone: 'Admin',
         email: 'admin@greenmarket.bf',
         name: 'Administrateur',
+        role: 'super-admin',
         isAdmin: true,
         isProfileComplete: true,
         addresses: []
@@ -148,41 +149,41 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   // Détecter si on est sur mobile et afficher bouton admin
   useEffect(() => {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
+
     if (isMobile) {
       // Sur mobile, afficher le bouton admin après 2 secondes
       const timer = setTimeout(() => {
         setShowMobileAdminButton(true);
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     } else {
       // Sur desktop, garder la méthode des 5 clics
       let clickCount = 0;
       let lastClickTime = 0;
       const CLICK_TIMEOUT = 1000;
-      
+
       const handleLogoInteraction = (e: Event) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const now = Date.now();
-        
+
         if (now - lastClickTime < 100) {
           return;
         }
-        
+
         lastClickTime = now;
         clickCount++;
-        
+
         console.log(`🔵 Clic ${clickCount}/5 sur le logo - Type: ${e.type}`);
-        
+
         if (clickCount === 5) {
           console.log('✅ 5 clics atteints - Affichage page admin');
           setShowAdminPage(true);
           clickCount = 0;
         }
-        
+
         setTimeout(() => {
           if (clickCount > 0) {
             console.log('🔴 Reset timeout - clics annulés');
@@ -190,14 +191,14 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
           }
         }, CLICK_TIMEOUT);
       };
-      
+
       const logoElement = document.querySelector('.admin-secret-trigger');
       if (logoElement) {
         console.log('✅ Logo trouvé, ajout des écouteurs desktop');
         logoElement.addEventListener('click', handleLogoInteraction);
         logoElement.addEventListener('mousedown', handleLogoInteraction);
       }
-      
+
       return () => {
         if (logoElement) {
           logoElement.removeEventListener('click', handleLogoInteraction);
@@ -210,7 +211,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   // Si on est sur la page admin, afficher la page admin séparée
   if (showAdminPage) {
     return (
-      <AdminLogin 
+      <AdminLogin
         onLogin={onLogin}
         onBack={() => setShowAdminPage(false)}
       />
@@ -220,7 +221,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center">
-        
+
         {/* Section gauche - Branding */}
         <div className="hidden lg:flex flex-col justify-center items-center text-center p-8">
           <div className="w-32 h-32 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-3xl flex items-center justify-center mb-8 shadow-2xl admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
@@ -246,7 +247,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
 
         {/* Section droite - Formulaire */}
         <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-12 border border-gray-100">
-          
+
           {/* Header mobile */}
           <div className="flex lg:hidden items-center justify-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-br from-[#2D5A27] to-emerald-600 rounded-2xl flex items-center justify-center admin-secret-trigger cursor-pointer hover:scale-110 transition-transform active:scale-95">
@@ -258,21 +259,19 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
           <div className="flex mb-8 bg-gray-50 rounded-2xl p-1">
             <button
               onClick={() => setAuthMode('login')}
-              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
-                authMode === 'login' 
-                  ? 'bg-white text-[#2D5A27] shadow-md' 
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${authMode === 'login'
+                  ? 'bg-white text-[#2D5A27] shadow-md'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               Se connecter
             </button>
             <button
               onClick={() => setAuthMode('signup')}
-              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${
-                authMode === 'signup' 
-                  ? 'bg-white text-[#2D5A27] shadow-md' 
+              className={`flex-1 py-3 px-6 rounded-xl font-semibold transition-all ${authMode === 'signup'
+                  ? 'bg-white text-[#2D5A27] shadow-md'
                   : 'text-gray-500 hover:text-gray-700'
-              }`}
+                }`}
             >
               Créer un compte
             </button>
@@ -320,7 +319,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                   placeholder="Votre nom complet"
                   className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   disabled={loading}
                 />
               </div>
@@ -335,7 +334,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                 placeholder="votre@email.com"
                 className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 disabled={loading}
               />
             </div>
@@ -349,10 +348,10 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                 placeholder="••••••••••"
                 className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 px-6 outline-none focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent transition-all font-medium pr-12"
                 value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 disabled={loading}
               />
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-6 top-[34px] text-gray-300"
@@ -371,7 +370,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                   placeholder="••••••••••"
                   className="w-full px-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#2D5A27] focus:border-transparent outline-none transition-all font-medium"
                   value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   disabled={loading}
                 />
               </div>
@@ -403,14 +402,14 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                   placeholder="Code secret"
                   className="w-full px-3 py-2 text-sm border border-yellow-300 rounded-lg bg-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none"
                   value={secretData.secret}
-                  onChange={(e) => setSecretData({...secretData, secret: e.target.value})}
+                  onChange={(e) => setSecretData({ ...secretData, secret: e.target.value })}
                 />
                 <input
                   type="password"
                   placeholder="Mot de passe admin"
                   className="w-full px-3 py-2 text-sm border border-yellow-300 rounded-lg bg-white focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none"
                   value={secretData.adminPassword}
-                  onChange={(e) => setSecretData({...secretData, adminPassword: e.target.value})}
+                  onChange={(e) => setSecretData({ ...secretData, adminPassword: e.target.value })}
                 />
                 <button
                   onClick={handleSecretLogin}
@@ -440,7 +439,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
               {authMode === 'login' ? (
                 <>
                   Pas encore de compte ?{' '}
-                  <button 
+                  <button
                     onClick={() => setAuthMode('signup')}
                     className="text-[#2D5A27] font-medium hover:underline"
                   >
@@ -450,7 +449,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
               ) : (
                 <>
                   Déjà un compte ?{' '}
-                  <button 
+                  <button
                     onClick={() => setAuthMode('login')}
                     className="text-[#2D5A27] font-medium hover:underline"
                   >
@@ -459,7 +458,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
                 </>
               )}
             </p>
-            
+
             {/* Indicateur secret */}
             <p className="text-xs text-gray-400 mt-4">
               •
@@ -468,7 +467,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
         </div>
       </div>
 
-      </div>
+    </div>
   );
 };
 
