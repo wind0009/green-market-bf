@@ -169,14 +169,35 @@ const AppContent: React.FC = () => {
   };
 
   // Legacy handles kept empty or redirecting to new auth flow if needed
-  const handleSignup = (userData: User) => {
-    // Managed by EmailLogin component now
-    console.log("Signup handled by service");
+  const handleSignup = async (userData: User) => {
+    try {
+      await userService.saveUser(userData);
+      setUser(userData);
+      localStorage.setItem('gm_user', JSON.stringify(userData));
+      navigate('/');
+    } catch (error) {
+      console.error("Signup error:", error);
+      alert("Erreur lors de la création du compte.");
+    }
   };
 
-  const handleLogin = (identifier: string, password?: string, isSpecialAdmin: boolean = false) => {
-    // Legacy support
-    console.log("Login handled by service");
+  const handleLogin = async (identifier: string, password?: string, isSpecialAdmin: boolean = false) => {
+    try {
+      // 1. Essayer de trouver par téléphone
+      const userData = await userService.getUserByPhone(identifier);
+      if (userData) {
+        // En version démo simplifiée, on connecte directement si trouvé
+        // (Idéalement on vérifierait le mot de passe ici si non géré par Firebase Auth)
+        setUser(userData);
+        localStorage.setItem('gm_user', JSON.stringify(userData));
+        navigate(userData.isAdmin ? '/admin-control-tower' : '/');
+      } else {
+        alert("Utilisateur non trouvé.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Erreur lors de la connexion.");
+    }
   };
 
   const handleLogout = async () => {
