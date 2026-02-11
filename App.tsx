@@ -11,6 +11,7 @@ import VendorCodeModal from './views/VendorCodeModal';
 import Layout from './components/Layout';
 import Catalog from './views/Catalog';
 import ProductDetails from './views/ProductDetails';
+import AdminDashboard from './views/AdminDashboard';
 import { User, Order, Plant, CartItem } from './types';
 import { PLANTS } from './constants';
 import { emailAuthService } from './services/emailAuthService';
@@ -300,6 +301,9 @@ const AppContent: React.FC = () => {
           <PremiumProducts onAddToCart={addToCart} />
         } />
         <Route path="/vendor-products/:vendorId" element={<VendorProductsWrapper onAddToCart={addToCart} />} />
+        <Route path="/admin-control-tower" element={
+          user?.isAdmin ? <AdminDashboard user={user} /> : <Navigate to="/" />
+        } />
       </Routes>
     </Layout>
   );
