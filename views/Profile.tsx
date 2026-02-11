@@ -40,6 +40,8 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
   const [showVendorSubscription, setShowVendorSubscription] = useState(false);
   const [showVendorCodeModal, setShowVendorCodeModal] = useState(false);
   const [vendorCode, setVendorCode] = useState('');
+  const [activationCode, setActivationCode] = useState('');
+  const [activating, setActivating] = useState(false);
 
   const handleAccessVendor = (vendorId: string, vendorName: string) => {
     // Rediriger vers la page produits premium du vendeur
@@ -295,13 +297,32 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           </button>
 
           {!user.isVendor && (
-            <button
-              onClick={() => setShowVendorSubscription(true)}
-              className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl text-[9px] font-medium uppercase tracking-wider transition-all"
-            >
-              <i className="fa-solid fa-store mr-2"></i>
-              Devenir Vendeur
-            </button>
+            <div className="mt-6 w-full max-w-xs mx-auto space-y-3">
+              <button
+                onClick={() => setShowVendorSubscription(true)}
+                className="w-full px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-900/20"
+              >
+                <i className="fa-solid fa-store mr-2"></i>
+                Devenir Vendeur
+              </button>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Code d'activation admin"
+                  className="w-full bg-white/10 border border-white/20 rounded-2xl py-3 px-4 text-xs text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/20"
+                  value={activationCode}
+                  onChange={(e) => setActivationCode(e.target.value)}
+                />
+                <button
+                  onClick={handleActivateWithCode}
+                  disabled={activating || !activationCode}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-[#2D5A27] px-3 py-1.5 rounded-xl text-[9px] font-black uppercase disabled:opacity-50"
+                >
+                  {activating ? <i className="fa-solid fa-spinner fa-spin"></i> : 'Activer'}
+                </button>
+              </div>
+            </div>
           )}
 
           <button
