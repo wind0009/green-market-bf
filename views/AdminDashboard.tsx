@@ -278,6 +278,7 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
                                         }}
                                     />
                                 </div>
+                            ))}
                     </div>
                 </div>
             )}
