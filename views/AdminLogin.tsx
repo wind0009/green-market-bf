@@ -17,7 +17,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+
     if (credentials.secret === 'admin' && credentials.password === '1234') {
       const adminUser: User = {
         id: 'admin-secret',
@@ -69,7 +69,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
                 placeholder="Entrez le code secret"
                 className="w-full px-4 py-4 rounded-xl border border-orange-200 bg-orange-50 focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all font-medium"
                 value={credentials.secret}
-                onChange={(e) => setCredentials({...credentials, secret: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, secret: e.target.value })}
                 disabled={loading}
               />
             </div>
@@ -84,7 +84,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
                 placeholder="Entrez le mot de passe"
                 className="w-full px-4 py-4 rounded-xl border border-orange-200 bg-orange-50 focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all font-medium"
                 value={credentials.password}
-                onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                 disabled={loading}
               />
             </div>
@@ -116,14 +116,6 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
               </button>
             </div>
           </form>
-
-          {/* Indice */}
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-            <p className="text-xs text-yellow-700 text-center">
-              <i className="fa-solid fa-lightbulb mr-2"></i>
-              Indice: admin / 1234
-            </p>
-          </div>
         </div>
       </div>
     </div>
