@@ -88,6 +88,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           name: formData.name,
           email: formData.email || `${formData.phone}@greenmarket.bf`,
           phone: formData.phone,
+          role: 'client',
           isAdmin: false,
           isProfileComplete: true,
           addresses: []
@@ -103,6 +104,30 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleActivateWithCode = async () => {
+    if (!user || !activationCode) return;
+    setActivating(true);
+    setError(null);
+    try {
+      const isValid = await userService.verifyVendorActivationCode(user.id, activationCode.toUpperCase());
+      if (isValid) {
+        onUpdateProfile({
+          isVendor: true,
+          role: 'vendeur' as any,
+          vendorStatus: 'active'
+        });
+        alert("🎉 Code valide ! Votre accès vendeur est maintenant activé.");
+        setActivationCode('');
+      } else {
+        setError("Code d'activation invalide.");
+      }
+    } catch (err) {
+      setError("Erreur lors de la vérification du code.");
+    } finally {
+      setActivating(false);
     }
   };
 
