@@ -347,7 +347,7 @@ const AppContent: React.FC = () => {
           <Profile user={user} onLogin={handleLogin} onSignup={handleSignup} onLogout={handleLogout} onUpdateProfile={handleUpdateProfile} orders={orders} />
         } />
         <Route path="/vendor-dashboard" element={
-          user.isVendor ? (
+          (user.isVendor && user.vendorStatus === 'active') ? (
             <VendorDashboard
               user={user}
               onUpdateProfile={handleUpdateProfile}

@@ -381,7 +381,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
             </button>
           )}
 
-          {user.isVendor && (
+          {user.isVendor && user.vendorStatus === 'active' && (
             <button
               onClick={() => navigate('/vendor-dashboard')}
               className="mt-4 px-8 py-3 bg-green-600 hover:bg-green-700 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-green-500 transition-all active:scale-95"
