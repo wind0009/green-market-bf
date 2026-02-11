@@ -278,90 +278,90 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
                                         }}
                                     />
                                 </div>
-                            ))}
                     </div>
+                </div>
             )}
 
-                    {activeTab === 'orders' && (
-                        <div className="text-center py-20 bg-white rounded-[32px] border border-dashed border-gray-200">
-                            <i className="fa-solid fa-receipt text-3xl text-gray-100 mb-2"></i>
-                            <p className="text-xs text-gray-400">Module de commandes centralisées en cours...</p>
-                        </div>
-                    )}
-
-                    {messageModal.isOpen && (
-                        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[32px] p-6 w-full max-w-sm">
-                                <h3 className="font-bold text-gray-800 mb-2">Message à {messageModal.targetUser?.name}</h3>
-                                <textarea
-                                    className="w-full bg-gray-50 rounded-2xl p-4 text-sm h-32 mb-4 focus:ring-2 focus:ring-[#2D5A27] outline-none"
-                                    placeholder="Écrivez votre message..."
-                                    value={adminMsg}
-                                    onChange={(e) => setAdminMsg(e.target.value)}
-                                ></textarea>
-                                <div className="flex gap-2">
-                                    <button onClick={() => setMessageModal({ isOpen: false, targetUser: null })} className="flex-1 py-3 rounded-xl bg-gray-100 font-bold text-xs text-gray-500">Annuler</button>
-                                    <button onClick={handleSendMessage} className="flex-1 py-3 rounded-xl bg-[#2D5A27] text-white font-bold text-xs">Envoyer</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {editProductModal.isOpen && (
-                        <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[40px] p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-xl font-black text-gray-800">Éditer le produit</h3>
-                                    <button onClick={() => setEditProductModal({ isOpen: false, product: null })} className="text-gray-400"><i className="fa-solid fa-times"></i></button>
-                                </div>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Nom du produit</label>
-                                        <input
-                                            type="text"
-                                            className="w-full bg-gray-50 p-4 rounded-2xl font-bold border-none"
-                                            value={editFormData.name}
-                                            onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Prix (FCFA)</label>
-                                        <input
-                                            type="number"
-                                            className="w-full bg-gray-50 p-4 rounded-2xl font-bold border-none"
-                                            value={editFormData.price}
-                                            onChange={e => setEditFormData({ ...editFormData, price: Number(e.target.value) })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Stock disponible</label>
-                                        <input
-                                            type="number"
-                                            className="w-full bg-gray-50 p-4 rounded-2xl font-bold border-none"
-                                            value={editFormData.stock}
-                                            onChange={e => setEditFormData({ ...editFormData, stock: Number(e.target.value) })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Description</label>
-                                        <textarea
-                                            className="w-full bg-gray-50 p-4 rounded-2xl font-medium border-none h-24"
-                                            value={editFormData.description}
-                                            onChange={e => setEditFormData({ ...editFormData, description: e.target.value })}
-                                        ></textarea>
-                                    </div>
-                                    <button
-                                        onClick={handleUpdateProduct}
-                                        className="w-full py-4 bg-[#2D5A27] text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg"
-                                    >
-                                        Enregistrer les modifications
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+            {activeTab === 'orders' && (
+                <div className="text-center py-20 bg-white rounded-[32px] border border-dashed border-gray-200">
+                    <i className="fa-solid fa-receipt text-3xl text-gray-100 mb-2"></i>
+                    <p className="text-xs text-gray-400">Module de commandes centralisées en cours...</p>
                 </div>
-            );
+            )}
+
+            {messageModal.isOpen && (
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[32px] p-6 w-full max-w-sm">
+                        <h3 className="font-bold text-gray-800 mb-2">Message à {messageModal.targetUser?.name}</h3>
+                        <textarea
+                            className="w-full bg-gray-50 rounded-2xl p-4 text-sm h-32 mb-4 focus:ring-2 focus:ring-[#2D5A27] outline-none"
+                            placeholder="Écrivez votre message..."
+                            value={adminMsg}
+                            onChange={(e) => setAdminMsg(e.target.value)}
+                        ></textarea>
+                        <div className="flex gap-2">
+                            <button onClick={() => setMessageModal({ isOpen: false, targetUser: null })} className="flex-1 py-3 rounded-xl bg-gray-100 font-bold text-xs text-gray-500">Annuler</button>
+                            <button onClick={handleSendMessage} className="flex-1 py-3 rounded-xl bg-[#2D5A27] text-white font-bold text-xs">Envoyer</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editProductModal.isOpen && (
+                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[40px] p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-black text-gray-800">Éditer le produit</h3>
+                            <button onClick={() => setEditProductModal({ isOpen: false, product: null })} className="text-gray-400"><i className="fa-solid fa-times"></i></button>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Nom du produit</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-gray-50 p-4 rounded-2xl font-bold border-none"
+                                    value={editFormData.name}
+                                    onChange={e => setEditFormData({ ...editFormData, name: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Prix (FCFA)</label>
+                                <input
+                                    type="number"
+                                    className="w-full bg-gray-50 p-4 rounded-2xl font-bold border-none"
+                                    value={editFormData.price}
+                                    onChange={e => setEditFormData({ ...editFormData, price: Number(e.target.value) })}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Stock disponible</label>
+                                <input
+                                    type="number"
+                                    className="w-full bg-gray-50 p-4 rounded-2xl font-bold border-none"
+                                    value={editFormData.stock}
+                                    onChange={e => setEditFormData({ ...editFormData, stock: Number(e.target.value) })}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black uppercase text-gray-400 ml-2">Description</label>
+                                <textarea
+                                    className="w-full bg-gray-50 p-4 rounded-2xl font-medium border-none h-24"
+                                    value={editFormData.description}
+                                    onChange={e => setEditFormData({ ...editFormData, description: e.target.value })}
+                                ></textarea>
+                            </div>
+                            <button
+                                onClick={handleUpdateProduct}
+                                className="w-full py-4 bg-[#2D5A27] text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg"
+                            >
+                                Enregistrer les modifications
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
-            export default AdminDashboard;
+export default AdminDashboard;
