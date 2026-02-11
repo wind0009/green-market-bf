@@ -4,6 +4,7 @@ import VendorSubscription from './VendorSubscription';
 import VendorCodeModal from './VendorCodeModal';
 import { firebaseAuthService } from '../services/firebaseAuthService';
 
+import { userService } from '../services/userService';
 import { useNavigate } from 'react-router-dom';
 
 interface ProfileProps {

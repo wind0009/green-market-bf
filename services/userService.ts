@@ -106,5 +106,21 @@ export const userService = {
     await Promise.all(deletePromises);
 
     console.log('✅ Base de données utilisateurs supprimée avec succès dans Firebase');
+  },
+
+  // Vérifier un code d'activation vendeur
+  verifyVendorActivationCode: async (userId: string, code: string): Promise<boolean> => {
+    try {
+      const userRef = doc(db, USERS_COLLECTION, userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data() as User;
+        return userData.vendorCode === code;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error verifying vendor code:', error);
+      return false;
+    }
   }
 };
