@@ -401,12 +401,33 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
         </div>
       </div>
 
+      {/* Pop-up Message Admin */}
       {user.adminMessage && (
-        <div className="bg-blue-50 border-2 border-blue-100 rounded-[36px] p-6 mb-4 relative animate-fadeIn mx-2">
-          <div className="absolute -top-3 left-8 bg-blue-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
-            Message de la Direction
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 animate-fadeIn">
+          <div className="bg-white rounded-[40px] p-8 w-full max-w-sm shadow-2xl border border-blue-100 flex flex-col items-center text-center relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+            <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center mb-6">
+              <i className="fa-solid fa-bell text-2xl"></i>
+            </div>
+            <h3 className="text-xl font-black text-gray-800 mb-2 uppercase tracking-tight">Notification Admin</h3>
+            <p className="text-gray-500 text-sm leading-relaxed mb-8 font-medium italic">
+              « {user.adminMessage} »
+            </p>
+            <button
+              onClick={async () => {
+                const msg = user.adminMessage; // Sauvegarder pour le feedback si besoin
+                onUpdateProfile({ adminMessage: "" }); // Clear local state
+                try {
+                  await userService.updateUser(user.id, { adminMessage: "" }); // Clear in DB
+                } catch (e) {
+                  console.error("Failed to clear message", e);
+                }
+              }}
+              className="w-full py-4 bg-[#2D5A27] text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all"
+            >
+              J'ai compris
+            </button>
           </div>
-          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">{user.adminMessage}</p>
         </div>
       )}
 

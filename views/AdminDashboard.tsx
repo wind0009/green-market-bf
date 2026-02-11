@@ -74,6 +74,7 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
             isVendor: true,
             role: 'vendeur',
             vendorCode: code,
+            vendorStatus: 'active', // Directement actif une fois approuvé par l'admin (+ code envoyé)
             adminMessage: message
         });
 
@@ -82,6 +83,7 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
             isVendor: true,
             role: 'vendeur',
             vendorCode: code,
+            vendorStatus: 'active',
             adminMessage: message
         } : u));
 
