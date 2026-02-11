@@ -9,9 +9,10 @@ import { userService } from '../services/userService';
 
 interface PremiumProductsProps {
   vendorCode?: string;
+  onAddToCart: (product: Plant) => void;
 }
 
-const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
+const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode, onAddToCart }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [allVendorProducts, setAllVendorProducts] = useState<Plant[]>([]);
@@ -204,7 +205,7 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
 
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-bold ${product.stock < 5 ? 'text-red-500' : 'text-green-500'}`}>
                       {product.stock > 0 ? `${product.stock} en stock` : 'Rupture'}
@@ -216,6 +217,17 @@ const PremiumProducts: React.FC<PremiumProductsProps> = ({ vendorCode }) => {
                     <span className="text-xs font-bold text-purple-600">Premium</span>
                   </div>
                 </div>
+
+                <button
+                  onClick={() => {
+                    onAddToCart(product);
+                    alert('✅ Produit ajouté au panier !');
+                  }}
+                  disabled={product.stock === 0}
+                  className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white py-3 rounded-2xl font-bold transition-all active:scale-95 disabled:cursor-not-allowed"
+                >
+                  {product.stock > 0 ? 'Ajouter au panier' : 'Rupture de stock'}
+                </button>
               </div>
             </div>
           ))}

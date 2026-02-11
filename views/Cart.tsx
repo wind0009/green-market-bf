@@ -82,12 +82,25 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove, onPlaceO
         <p className="text-gray-500 mb-8">
           Bark-wende ! Votre commande a été enregistrée. Nous vous contacterons sur le {formData.phone} pour confirmer la livraison.
         </p>
-        <button
-          onClick={() => navigate('/profile')}
-          className="bg-[#2D5A27] text-white px-8 py-3 rounded-xl font-bold w-full"
-        >
-          Suivre ma commande
-        </button>
+        <div className="space-y-3 w-full max-w-xs">
+          <button
+            onClick={() => {
+              const ussd = `*144*2*1*07659801*${total}#`;
+              window.location.href = `tel:${ussd}`;
+            }}
+            className="bg-orange-500 text-white px-8 py-3 rounded-xl font-bold w-full flex items-center justify-center gap-2 shadow-lg shadow-orange-100"
+          >
+            <i className="fa-solid fa-mobile-screen-button"></i>
+            Payer par Téléphone
+          </button>
+
+          <button
+            onClick={() => navigate('/profile')}
+            className="bg-[#2D5A27] text-white px-8 py-3 rounded-xl font-bold w-full"
+          >
+            Suivre ma commande
+          </button>
+        </div>
       </div>
     );
   }

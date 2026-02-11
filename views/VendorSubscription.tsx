@@ -100,7 +100,16 @@ const VendorSubscription: React.FC<VendorSubscriptionProps> = ({ user, onUpdateP
 
         {/* Payment Info - Condensed */}
         <div className="bg-gray-50 rounded-2xl p-3 mb-4 border border-gray-200">
-          <p className="text-xs text-gray-600 mb-2 font-semibold">💳 Code Orange Money :</p>
+          <div className="flex justify-between items-center mb-2">
+            <p className="text-xs text-gray-600 font-semibold">💳 Code Orange Money :</p>
+            <button
+              onClick={() => window.location.href = 'tel:*144*2*1*07659801*5000#'}
+              className="text-[10px] bg-orange-100 text-orange-600 px-2 py-1 rounded-lg font-bold flex items-center gap-1"
+            >
+              <i className="fa-solid fa-phone"></i>
+              Lancer l'appel
+            </button>
+          </div>
           <div className="bg-white rounded-lg p-2 border border-gray-300">
             <p className="font-mono text-sm text-center text-orange-600 font-bold">*144*2*1*07659801*5000#</p>
           </div>

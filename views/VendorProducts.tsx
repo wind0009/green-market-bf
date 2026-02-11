@@ -10,13 +10,13 @@ import { useNavigate } from 'react-router-dom';
 
 interface VendorProductsProps {
   vendorId: string;
+  onAddToCart: (product: Plant) => void;
 }
 
-const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
+const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId, onAddToCart }) => {
   const navigate = useNavigate();
   const [vendorProducts, setVendorProducts] = useState<Plant[]>([]);
   const [vendorInfo, setVendorInfo] = useState<User | null>(null);
-  const [cart, setCart] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,30 +41,10 @@ const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
     if (vendorId) {
       fetchData();
     }
-
-    // Charger le panier
-    const savedCart = localStorage.getItem('gm_cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
   }, [vendorId]);
 
-  const addToCart = (product: VendorProduct) => {
-    const existingItem = cart.find(item => item.id === product.id);
-    let newCart;
-
-    if (existingItem) {
-      newCart = cart.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    } else {
-      newCart = [...cart, { ...product, quantity: 1 }];
-    }
-
-    setCart(newCart);
-    localStorage.setItem('gm_cart', JSON.stringify(newCart));
+  const handleAddToCart = (product: Plant) => {
+    onAddToCart(product);
     alert('✅ Produit ajouté au panier !');
   };
 
@@ -153,7 +133,7 @@ const VendorProducts: React.FC<VendorProductsProps> = ({ vendorId }) => {
                 </div>
 
                 <button
-                  onClick={() => addToCart(product)}
+                  onClick={() => handleAddToCart(product)}
                   disabled={product.stock === 0}
                   className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white py-3 rounded-2xl font-bold transition-all active:scale-95 disabled:cursor-not-allowed"
                 >

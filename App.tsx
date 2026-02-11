@@ -297,18 +297,18 @@ const AppContent: React.FC = () => {
           ) : <Navigate to="/" />
         } />
         <Route path="/premium-products" element={
-          <PremiumProducts />
+          <PremiumProducts onAddToCart={addToCart} />
         } />
-        <Route path="/vendor-products/:vendorId" element={<VendorProductsWrapper />} />
+        <Route path="/vendor-products/:vendorId" element={<VendorProductsWrapper onAddToCart={addToCart} />} />
       </Routes>
     </Layout>
   );
 };
 
 // Wrapper component pour VendorProducts route
-const VendorProductsWrapper: React.FC = () => {
+const VendorProductsWrapper: React.FC<{ onAddToCart: (plant: Plant) => void }> = ({ onAddToCart }) => {
   const { vendorId } = useParams<{ vendorId: string }>();
-  return <VendorProducts vendorId={vendorId || ''} />;
+  return <VendorProducts vendorId={vendorId || ''} onAddToCart={onAddToCart} />;
 };
 
 const App: React.FC = () => {
