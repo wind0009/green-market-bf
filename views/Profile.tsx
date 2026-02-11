@@ -320,8 +320,26 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
               Compte Vendeur
             </button>
           )}
+
+          {user.isAdmin && (
+            <button
+              onClick={() => navigate('/admin-control-tower')}
+              className="mt-4 px-8 py-3 bg-[#2D5A27] hover:bg-green-700 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-green-500 transition-all active:scale-95 text-white"
+            >
+              Tour de Contrôle Admin
+            </button>
+          )}
         </div>
       </div>
+
+      {user.adminMessage && (
+        <div className="bg-blue-50 border-2 border-blue-100 rounded-[36px] p-6 mb-4 relative animate-fadeIn mx-2">
+          <div className="absolute -top-3 left-8 bg-blue-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">
+            Message de la Direction
+          </div>
+          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-medium">{user.adminMessage}</p>
+        </div>
+      )}
 
       <div className="bg-white p-6 rounded-[36px] border border-gray-100 shadow-sm space-y-4">
         <h3 className="text-xs font-black text-[#2D5A27] uppercase tracking-[0.2em] mb-2 px-2">Identification</h3>
