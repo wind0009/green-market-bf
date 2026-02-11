@@ -322,7 +322,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
             Déconnexion
           </button>
 
-          {!user.isVendor && (
+          {!user.isVendor && !user.isAdmin && (
             <div className="mt-6 w-full max-w-xs mx-auto space-y-3">
               <button
                 onClick={() => setShowVendorSubscription(true)}
@@ -351,13 +351,15 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
             </div>
           )}
 
-          <button
-            onClick={() => setShowVendorCodeModal(true)}
-            className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl text-[9px] font-medium uppercase tracking-wider transition-all"
-          >
-            <i className="fa-solid fa-key mr-2"></i>
-            Code Vendeur
-          </button>
+          {!user.isAdmin && (
+            <button
+              onClick={() => setShowVendorCodeModal(true)}
+              className="mt-4 px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-2xl text-[9px] font-medium uppercase tracking-wider transition-all"
+            >
+              <i className="fa-solid fa-key mr-2"></i>
+              Accéder à un Vendeur
+            </button>
+          )}
 
           {user.isVendor && (
             <button
