@@ -161,6 +161,30 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
                         <p className="text-[10px] text-blue-600 font-black uppercase mb-1">Supervision des Vendeurs</p>
                         <p className="text-xs text-blue-800/60 leading-tight">Accédez aux boutiques et gérez les comptes vendeurs en toute autorité.</p>
                     </div>
+
+                    {/* Demandes en attente */}
+                    {users.filter(u => u.vendorStatus === 'pending').length > 0 && (
+                        <div className="mb-6 space-y-3">
+                            <p className="text-[10px] font-black text-orange-500 uppercase px-2">Demandes d'accès à valider</p>
+                            {users.filter(u => u.vendorStatus === 'pending').map(u => (
+                                <div key={u.id} className="bg-orange-50 p-4 rounded-[24px] border border-orange-100 shadow-sm flex items-center justify-between animate-pulse">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center font-bold text-orange-600">{u.name.charAt(0)}</div>
+                                        <div>
+                                            <h4 className="font-bold text-sm">{u.name}</h4>
+                                            <p className="text-[10px] text-orange-400">{u.phone}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleGrantVendorWithCode(u)}
+                                        className="bg-orange-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-900/20"
+                                    >
+                                        Approuver
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     {users.map(u => (
                         <div key={u.id} className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm flex items-center justify-between">
                             <div className="flex items-center gap-3">

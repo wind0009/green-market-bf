@@ -323,19 +323,39 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogin, onSignup, onLogout, on
           </button>
 
           {!user.isVendor && !user.isAdmin && (
-            <div className="mt-6 w-full max-w-xs mx-auto space-y-3">
+            <div className="mt-6 w-full max-w-xs mx-auto">
               <button
-                onClick={() => setShowVendorSubscription(true)}
-                className="w-full px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-900/20"
+                onClick={async () => {
+                  try {
+                    setActivating(true);
+                    await userService.requestVendorAccess(user.id);
+                    onUpdateProfile({ isVendor: true, vendorStatus: 'pending' });
+                    alert("Votre demande d'accès vendeur a été envoyée ! Elle est en attente de validation par l'admin.");
+                  } catch (err) {
+                    setError("Erreur lors de l'envoi de la demande.");
+                  } finally {
+                    setActivating(false);
+                  }
+                }}
+                disabled={activating}
+                className="w-full px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-900/20 disabled:opacity-50"
               >
-                <i className="fa-solid fa-store mr-2"></i>
-                Devenir Vendeur
+                {activating ? <i className="fa-solid fa-spinner fa-spin"></i> : 'Demander l\'accès Vendeur'}
               </button>
+            </div>
+          )}
+
+          {user.isVendor && user.vendorStatus === 'pending' && !user.isAdmin && (
+            <div className="mt-6 w-full max-w-xs mx-auto space-y-4">
+              <div className="bg-orange-100/20 border border-orange-500/30 p-4 rounded-2xl backdrop-blur-sm">
+                <p className="text-[10px] font-black text-orange-500 uppercase mb-1">Demande en attente</p>
+                <p className="text-xs text-orange-200/80 leading-tight">L'administrateur examine votre demande. Une fois approuvé, vous recevrez un code ici.</p>
+              </div>
 
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Code d'activation admin"
+                  placeholder="Saisir le code reçu"
                   className="w-full bg-white/10 border border-white/20 rounded-2xl py-3 px-4 text-xs text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-white/20"
                   value={activationCode}
                   onChange={(e) => setActivationCode(e.target.value)}

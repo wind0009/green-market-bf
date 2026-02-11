@@ -122,5 +122,15 @@ export const userService = {
       console.error('Error verifying vendor code:', error);
       return false;
     }
+  },
+
+  // Demander l'accès vendeur (Met en attente)
+  requestVendorAccess: async (userId: string): Promise<void> => {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    await updateDoc(userRef, {
+      isVendor: true,
+      vendorStatus: 'pending',
+      role: 'client' // Reste client jusqu'à activation par code
+    });
   }
 };
