@@ -76,28 +76,42 @@ const AppContent: React.FC = () => {
         // 2. Fetch full user profile from Firestore
         const userProfile = await userService.getUserById(firebaseUser.uid);
 
-        if (userProfile) {
-          // Merge claims and profile
-          const mergedUser = {
-            ...userProfile,
-            role: (roleFromClaim || userProfile.role || 'client') as User['role']
-          };
+        // Même si le profil Firestore n'existe pas encore, on crée un utilisateur minimal
+        const baseUser: User = userProfile || {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || 'Utilisateur',
+          email: firebaseUser.email || '',
+          phone: firebaseUser.phoneNumber || '',
+          role: 'client',
+          isAdmin: false,
+          isProfileComplete: false,
+          addresses: []
+        };
 
-          setUser(mergedUser);
-          localStorage.setItem('gm_user', JSON.stringify(mergedUser));
+        // Merge claims and profile
+        const mergedUser = {
+          ...baseUser,
+          role: (roleFromClaim || baseUser.role || 'client') as User['role'],
+          // Fallback de sécurité si le claim est absent mais l'attribut Firestore est présent
+          isAdmin: roleFromClaim === 'super-admin' || roleFromClaim === 'manager' || baseUser.role === 'super-admin' || baseUser.role === 'manager' || baseUser.isAdmin
+        };
 
-          // 3. Redirection automatique si tentative d'accès admin sans les droits
-          const isAtAdminRoute = window.location.pathname.startsWith('/admin-control-tower');
-          const isAdmin = mergedUser.role === 'super-admin' || mergedUser.role === 'manager' || mergedUser.isAdmin;
+        setUser(mergedUser);
+        localStorage.setItem('gm_user', JSON.stringify(mergedUser));
 
-          if (isAtAdminRoute && !isAdmin) {
-            console.warn("Accès refusé : Rôle insuffisant.");
-            navigate('/403');
-          }
+        // 3. Redirection automatique si tentative d'accès admin sans les droits
+        const isAtAdminRoute = window.location.pathname.startsWith('/admin-control-tower');
+        if (isAtAdminRoute && !mergedUser.isAdmin) {
+          console.warn("Accès refusé : Droits insuffisants.");
+          navigate('/403');
         }
       } else {
-        setUser(null);
-        localStorage.removeItem('gm_user');
+        // Ne pas déconnecter si c'est un login "hardcodé" (id spécial)
+        setUser(prev => {
+          if (prev?.id === 'admin-secret') return prev;
+          localStorage.removeItem('gm_user');
+          return null;
+        });
       }
     });
 
