@@ -12,6 +12,7 @@ import Layout from './components/Layout';
 import Catalog from './views/Catalog';
 import ProductDetails from './views/ProductDetails';
 import AdminDashboard from './views/AdminDashboard';
+import Forbidden from './views/Forbidden';
 import { User, Order, Plant, CartItem } from './types';
 import { PLANTS } from './constants';
 import { emailAuthService } from './services/emailAuthService';
@@ -46,11 +47,11 @@ const AppContent: React.FC = () => {
     // Charger les plantes depuis Firebase
     const loadPlants = async () => {
       try {
-        const dbPlants = await plantService.getAllPlants();
+        const dbPlants = await plantService.getActivePlants();
         if (dbPlants.length === 0) {
-          console.log('Seeding database...');
-          await plantService.seedPlants(PLANTS);
-          setPlants(PLANTS);
+          console.log('Seeding database or no active plants...');
+          // Fallback static plants for new install - but filter them by status if we were to seed
+          setPlants(PLANTS.filter(p => p.status === 'active' || !p.status));
         } else {
           setPlants(dbPlants);
         }
@@ -68,21 +69,40 @@ const AppContent: React.FC = () => {
     // Listen to Firebase Auth state changes
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Fetch full user profile from Firestore
+        // 1. Fetch token and custom claims
+        const tokenResult = await firebaseUser.getIdTokenResult();
+        const roleFromClaim = tokenResult.claims.role as string;
+
+        // 2. Fetch full user profile from Firestore
         const userProfile = await userService.getUserById(firebaseUser.uid);
+
         if (userProfile) {
-          setUser(userProfile);
-          localStorage.setItem('gm_user', JSON.stringify(userProfile));
+          // Merge claims and profile
+          const mergedUser = {
+            ...userProfile,
+            role: (roleFromClaim || userProfile.role || 'client') as User['role']
+          };
+
+          setUser(mergedUser);
+          localStorage.setItem('gm_user', JSON.stringify(mergedUser));
+
+          // 3. Redirection automatique si tentative d'accès admin sans les droits
+          const isAtAdminRoute = window.location.pathname.startsWith('/admin-control-tower');
+          const isAdmin = mergedUser.role === 'super-admin' || mergedUser.role === 'manager' || mergedUser.isAdmin;
+
+          if (isAtAdminRoute && !isAdmin) {
+            console.warn("Accès refusé : Rôle insuffisant.");
+            navigate('/403');
+          }
         }
       } else {
-        // Do not automatically clear user here if we want to support offline/local state persistence 
-        // until explicit logout, but typically auth state change covers it.
-        // For now, let's trust explicit logout or token expiration.
+        setUser(null);
+        localStorage.removeItem('gm_user');
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     localStorage.setItem('gm_cart', JSON.stringify(cart));
@@ -220,6 +240,8 @@ const AppContent: React.FC = () => {
     );
   }
 
+  const isAdmin = user.role === 'super-admin' || user.role === 'manager' || user.isAdmin;
+
   return (
     <Layout cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)} isLoggedIn={true} userName={user.name}>
       <Routes>
@@ -302,8 +324,9 @@ const AppContent: React.FC = () => {
         } />
         <Route path="/vendor-products/:vendorId" element={<VendorProductsWrapper onAddToCart={addToCart} />} />
         <Route path="/admin-control-tower" element={
-          user?.isAdmin ? <AdminDashboard user={user} /> : <Navigate to="/" />
+          isAdmin ? <AdminDashboard user={user} /> : <Navigate to="/403" />
         } />
+        <Route path="/403" element={<Forbidden />} />
       </Routes>
     </Layout>
   );

@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { User, Plant, Order } from '../types';
 import { userService } from '../services/userService';
 import { plantService } from '../services/plantService';
+import { orderService } from '../services/orderService';
+import AdminProductValidation from '../components/AdminProductValidation';
 
 const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'inventory' | 'orders'>('overview');
     const [users, setUsers] = useState<User[]>([]);
     const [products, setProducts] = useState<Plant[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [messageModal, setMessageModal] = useState<{ isOpen: boolean; targetUser: User | null }>({ isOpen: false, targetUser: null });
     const [adminMsg, setAdminMsg] = useState('');
@@ -17,12 +20,14 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [allUsers, allProducts] = await Promise.all([
+                const [allUsers, allProducts, allOrders] = await Promise.all([
                     userService.getAllUsers(),
-                    plantService.getAllPlants()
+                    plantService.getAllPlants(),
+                    orderService.getAllOrders()
                 ]);
                 setUsers(allUsers);
                 setProducts(allProducts);
+                setOrders(allOrders);
             } catch (error) {
                 console.error("Admin data fetch error", error);
             } finally {
@@ -95,8 +100,14 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
                         <p className="text-3xl font-black text-[#2D5A27]">{products.length}</p>
                     </div>
                     <div className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm col-span-2">
-                        <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Vendeurs Actifs</p>
-                        <p className="text-3xl font-black text-orange-500">{users.filter(u => u.isVendor).length}</p>
+                        <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Chiffre d'Affaires Total</p>
+                        <p className="text-3xl font-black text-blue-600">
+                            {orders.reduce((sum, o) => sum + (o.total || 0), 0).toLocaleString()} F
+                        </p>
+                    </div>
+                    <div className="bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm col-span-2">
+                        <p className="text-[10px] text-gray-400 font-black uppercase mb-1">Produits en Attente</p>
+                        <p className="text-3xl font-black text-red-500">{products.filter(p => p.status === 'pending').length}</p>
                     </div>
                 </div>
             )}
@@ -133,20 +144,37 @@ const AdminDashboard: React.FC<{ user: User }> = ({ user }) => {
 
             {activeTab === 'inventory' && (
                 <div className="space-y-3">
-                    {products.map(p => (
-                        <div key={p.id} className="bg-white p-3 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-4">
-                            <img src={p.image} className="w-12 h-12 rounded-xl object-cover" alt="" />
-                            <div className="flex-grow">
-                                <h4 className="font-bold text-sm truncate max-w-[150px]">{p.name}</h4>
-                                <p className="text-[10px] text-[#2D5A27] font-black">{p.price} F</p>
-                                {p.vendorName && <p className="text-[9px] text-gray-400 uppercase font-black">Vendeur: {p.vendorName}</p>}
+                    {products.sort((a, b) => (a.status === 'pending' ? -1 : 1)).map(p => (
+                        <div key={p.id} className="bg-white p-4 rounded-[32px] border border-gray-100 shadow-sm flex flex-col gap-4">
+                            <div className="flex items-center gap-4">
+                                <img src={p.image} className="w-16 h-16 rounded-2xl object-cover shadow-sm" alt="" />
+                                <div className="flex-grow">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h4 className="font-bold text-sm truncate max-w-[150px]">{p.name}</h4>
+                                        <span className={`text-[8px] px-2 py-0.5 rounded-full font-black uppercase ${p.status === 'active' ? 'bg-emerald-50 text-emerald-500' :
+                                            p.status === 'rejected' ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-500'
+                                            }`}>
+                                            {p.status || 'pending'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs font-black text-[#2D5A27]">{p.price} F</p>
+                                    {p.vendorName && <p className="text-[9px] text-gray-400 uppercase font-black">Par: {p.vendorName}</p>}
+                                </div>
+                                <button
+                                    onClick={() => handleDeleteProduct(p.id)}
+                                    className="w-10 h-10 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center hover:bg-red-100 transition-colors"
+                                >
+                                    <i className="fa-solid fa-trash-can text-sm"></i>
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleDeleteProduct(p.id)}
-                                className="w-8 h-8 bg-red-50 text-red-500 rounded-lg flex items-center justify-center"
-                            >
-                                <i className="fa-solid fa-trash-can text-xs"></i>
-                            </button>
+
+                            {/* Validation component */}
+                            <AdminProductValidation
+                                plant={p}
+                                onStatusUpdate={(id, status) => {
+                                    setProducts(prev => prev.map(prod => prod.id === id ? { ...prod, status } : prod));
+                                }}
+                            />
                         </div>
                     ))}
                 </div>

@@ -1,6 +1,28 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Fonctions d'aide pour les rôles
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function hasRole(role) {
+      return request.auth != null && getUserData().role == role;
+    }
+    
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.role == 'super-admin' || 
+        request.auth.token.role == 'manager' ||
+        getUserData().role == 'super-admin' || 
+        getUserData().role == 'manager'
+      );
+    }
+    
+    function isSuperAdmin() {
+      return request.auth != null && request.auth.token.role == 'super-admin';
+    }
+
     // Règles pour le panier
     match /cart/{itemId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
@@ -8,12 +30,28 @@ service cloud.firestore {
     
     // Règles pour les commandes
     match /orders/{orderId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null && (request.auth.uid == resource.data.userId || isAdmin());
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Règles pour les produits (plants)
+    match /plants/{plantId} {
+      allow read: if resource.data.status == 'active' || isAdmin() || (request.auth != null && request.auth.uid == resource.data.vendorId);
+      allow create: if request.auth != null && (getUserData().role == 'vendeur' || isAdmin());
+      allow update, delete: if isAdmin() || (request.auth != null && resource.data.vendorId == request.auth.uid);
     }
     
     // Règles pour les utilisateurs
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && (request.auth.uid == userId || hasRole('super-admin'));
+    }
+
+    // Statistiques financières
+    match /stats/{statId} {
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin(); // Pour le super-admin, on permet tout
     }
   }
 }

@@ -7,7 +7,12 @@ export class PlantService {
 
     async createPlant(plant: Plant): Promise<string> {
         try {
-            const docRef = await addDoc(collection(db, this.plantsCollection), plant);
+            const dataToSave = {
+                ...plant,
+                status: plant.status || 'pending', // Par défaut en attente
+                dateAdded: plant.dateAdded || new Date().toISOString()
+            };
+            const docRef = await addDoc(collection(db, this.plantsCollection), dataToSave);
             return docRef.id;
         } catch (error) {
             console.error('Error creating plant:', error);
@@ -21,7 +26,17 @@ export class PlantService {
             return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Plant));
         } catch (error) {
             console.error('Error fetching plants:', error);
-            // Return empty array instead of throwing to allow app to function (maybe with static fallback/cache in future)
+            return [];
+        }
+    }
+
+    async getActivePlants(): Promise<Plant[]> {
+        try {
+            const q = query(collection(db, this.plantsCollection), where('status', '==', 'active'));
+            const querySnapshot = await getDocs(q);
+            return querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Plant));
+        } catch (error) {
+            console.error('Error fetching active plants:', error);
             return [];
         }
     }

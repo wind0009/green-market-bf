@@ -1,6 +1,10 @@
 
 export type Category = 'Intérieur' | 'Jardin' | 'Ombre' | 'Soleil' | 'Arbre' | 'Potager' | 'Médicinale' | 'Fruitier' | 'Cactus' | 'Palmier' | 'Arbuste';
 
+export type UserRole = 'super-admin' | 'manager' | 'vendeur' | 'client';
+
+export type ProductStatus = 'pending' | 'active' | 'rejected';
+
 export interface Plant {
   id: string;
   name: string;
@@ -19,6 +23,7 @@ export interface Plant {
   dateAdded: string;
   vendorId?: string;
   vendorName?: string;
+  status?: ProductStatus;
 }
 
 export interface CartItem extends Plant {
@@ -44,6 +49,8 @@ export interface Order {
   paymentMethod: 'Mobile Money' | 'Paiement à la livraison';
   status: OrderStatus;
   date: string;
+  deliveryStatus?: 'En préparation' | 'En cours de livraison' | 'Livré';
+  commission?: number;
 }
 
 export interface Address {
@@ -57,6 +64,7 @@ export interface User {
   phone: string;
   email?: string;
   name: string;
+  role: UserRole;
   isAdmin?: boolean;
   isProfileComplete?: boolean;
   addresses?: Address[];
